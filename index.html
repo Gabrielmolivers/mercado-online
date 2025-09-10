@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado Online</title>
+
+</head>
+
+<body>
+
+    <!--<header>-->
+    <header class="header">
+        <a href="#" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
+        <nav class="navbar">
+            <a href="maisvendidos">Mais Vendidos</a>
+            <a href="ofertas">Ofertas</a>
+            <a href="produtos">Produtos</a>
+            <a href="departamentos">Departamentos</a>
+            <a href="contato">Contato</a>
+        </nav>
+
+        <div class="icons">
+            <div id="search-btn" class="fas fa-search"></div>
+            <div id="cart-btn" class="fas fa-shopping-cart"></div>
+            <div id="login-btn" class="fas fa-user"></div>
+            <div id="menu-btn" class="fas fa-bars"></div>
+
+        </div>
+
+        <form class="search-form">
+            <input type="text" id="search-box" placeholder="Buscar produtos...">
+            <label for="search-box" class="fas fa-search"></label>
+        </form>
+
+        <div class="shopping-cart">
+            <div class="box">
+                <i class="fas fa-trash"></i>
+                <img src="image/produto1.png" alt="">
+                <div class="content">
+                    <h3>Melancia</h3>
+                    <span class="price">R$ 5,99 kg | </span>
+                    <span class="qtd">Qtde: 2,00 kg</span>
+                </div>
+            </div>
+            <div class="box">
+                <i class="fas fa-trash"></i>
+                <img src="image/produto2.png" alt="">
+                <div class="content">
+                    <h3>Picanha</h3>
+                    <span class="price">R$ 45,99 kg | </span>
+                    <span class="qtd">Qtde: 1,00 kg</span>
+                </div>
+            </div>
+
+            <div class="box">
+                <i class="fas fa-trash"></i>
+                <img src="image/produto3.png" alt="">
+                <div class="content">
+                    <h3>Coca-cola 2L</h3>
+                    <span class="price">R$ 9,99 und | </span>
+                    <span class="qtd">Qtde: 1 und</span>
+                </div>
+            </div>
+            <div class="total">
+                <h3>Total:<span class="price"> R$ 67,96</span></h3>
+
+            </div>
+            <a href="#" class="btn">Finalizar Compra</a>
+        </div>
+
+        <form action="#" class="login-form">
+            <h3>Seja Bem-Vindo(a)!</h3>
+            <p>Insira seus dados nos campos abaixo para fazer login.</p>
+            <input type="text" class="box" placeholder="Usuário" required>
+            <input type="password" class="box" placeholder="Senha" required>
+            <a href="#">Esqueceu a senha?</a>
+            <button type="submit" class="btn">Entrar</button>
+            <button type="button" class="criar-btn">Criar uma Conta</button>
+        </form>
+
+    </header>
+
+
+
+    <!--<banner>-->
+
+    <section class="inicio" id="inicio">
+    </section>
+    <div style="display: flex; gap: 1rem; margin: 2rem 0; justify-content: center;">
+        <button id="btn-conectar" style="padding: 1rem 2rem; font-size: 1.2rem; cursor: pointer;">Conectar ao
+            Banco</button>
+        <button id="btn-query" style="padding: 1rem 2rem; font-size: 1.2rem; cursor: pointer;">Testar Query</button>
+    </div>
+    <!--<destaque>-->
+
+    <section class="categorias-destaque" id="categorias-destaque">
+        <h1 class="cabecalho">Categorias em <span>Destaque</span></h1>
+        <div class="swiper categorias-slider">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide box">
+                    <img src="image/produto1.png" alt="">
+                    <h3>Hortifruti</h3>
+                    <a href="#" class="btn-categorias">Ver Categoria</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto2.png" alt="">
+                    <h3>Açougue</h3>
+                    <a href="#" class="btn-categorias">Ver Categoria</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto3.png" alt="">
+                    <h3>Bebidas</h3>
+                    <a href="#" class="btn-categorias">Ver Categoria</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto1.png" alt="">
+                    <h3>Hortifruti</h3>
+                    <a href="#" class="btn-categorias">Ver Categoria</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto2.png" alt="">
+                    <h3>Açougue</h3>
+                    <a href="#" class="btn-categorias">Ver Categoria</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto3.png" alt="">
+                    <h3>Bebidas</h3>
+                    <a href="#" class="btn-categorias">Ver Categoria</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto1.png" alt="">
+                    <h3>Hortifruti</h3>
+                    <a href="#" class="btn-categorias">Ver Categoria</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto2.png" alt="">
+                    <h3>Açougue</h3>
+                    <a href="#" class="btn-categorias">Ver Categoria</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto3.png" alt="">
+                    <h3>Bebidas</h3>
+                    <a href="#" class="btn-categorias">Ver Categoria</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto1.png" alt="">
+                    <h3>Hortifruti</h3>
+                    <a href="#" class="btn-categorias">Ver Categoria</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto2.png" alt="">
+                    <h3>Açougue</h3>
+                    <a href="#" class="btn-categorias">Ver Categoria</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto3.png" alt="">
+                    <h3>Bebidas</h3>
+                    <a href="#" class="btn-categorias">Ver Categoria</a>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <!--<Produtos destaque>-->
+
+    <section class="produtos-destaque" id="produtos-destaque">
+        <h1 class="cabecalho">Produtos em <span>Destaque</span></h1>
+        <div class="swiper produto-slider">
+
+            <div class="swiper-wrapper">
+                <div class="swiper-slide box">
+                    <img src="image/produto1.png">
+                    <h1>Melancia</h1>
+                    <div class="price">R$ 5,99 kg</div>
+                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto2.png">
+                    <h1>Picanha</h1>
+                    <div class="price">R$ 45,99 kg</div>
+                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto3.png">
+                    <h1>Coca-cola</h1>
+                    <div class="price">R$ 9,99 un</div>
+                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto4.png">
+                    <h1>Bandeja Ovos 30 un</h1>
+                    <div class="price">R$ 17,99 un</div>
+                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto5.jpg">
+                    <h1>Leite Lider 1L</h1>
+                    <div class="price">R$ 5,19 un</div>
+                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto6.jpg">
+                    <h1>Oleo de Soja Coamo</h1>
+                    <div class="price">R$ 6,99 un</div>
+                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto7.jpg">
+                    <h1>Detergente Ypê</h1>
+                    <div class="price">R$ 2,99 un</div>
+                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto8.jpg">
+                    <h1>Sabão em Pó Omo</h1>
+                    <div class="price">R$ 18,99 un</div>
+                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto9.jpg">
+                    <h1>Cebola</h1>
+                    <div class="price">R$ 2,99 kg</div>
+                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
+                </div>
+                <div class="swiper-slide box">
+                    <img src="image/produto10.jpg">
+                    <h1>Alho</h1>
+                    <div class="price">R$ 25,99 kg</div>
+                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
+                </div>
+            </div>
+            <!--SETAS-->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <!--<footer>-->
+    <footer>
+        <p>&copy; 2025 Control Power. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+
+</html>
