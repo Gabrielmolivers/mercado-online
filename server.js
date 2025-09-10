@@ -1,14 +1,19 @@
 const express = require('express');
 const path = require('path');
 const app = express();
+const api = require('./js/api');
 
-app.use(express.static(path.resolve('C:/CLIENTES_EXTERNO/MERCADO_ONLINE')));
+// Servir arquivos estáticos da pasta atual
+app.use(express.static(__dirname));
+app.use('/api', api);
 
-// Redireciona qualquer rota não encontrada para index.html
-app.use((req, res) => {
-  res.sendFile(path.resolve('C:/CLIENTES_EXTERNO/MERCADO_ONLINE/index.html'));
+// Exemplo de rota principal
+app.get('/', (req, res) => {
+	res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(3055, '0.0.0.0', () => {
-  console.log('Servidor rodando em http://controlpowerapp.com.br:3055');
+// Iniciar servidor na porta 3000
+app.listen(3000, '0.0.0.0', () => {
+	console.log('Servidor Express rodando na porta 3000');
 });
+
