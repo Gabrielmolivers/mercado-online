@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Mercado Online</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <section class="cadastro-section">
+        <h2>Cadastro de Usuário</h2>
+        <form id="cadastroForm">
+            <input type="text" name="nome" placeholder="Nome" required>
+            <input type="email" name="email" placeholder="E-mail" required>
+            <input type="text" name="endereco" placeholder="Endereço" required>
+            <div class="linha-bairro-numero">
+                <input type="text" name="bairro" placeholder="Bairro" required>
+                <input type="number" name="numero" placeholder="Número" min="0" required>
+            </div>
+            <input type="text" name="complemento" placeholder="Complemento ( Opcional )">
+            <input type="text" name="cep" id="cep" placeholder="CEP" maxlength="9" required>
+            <div id="cep-erro" style="color: #d32f2f; font-size: 1.4rem; font-weight: bolder; padding-bottom: 1rem; display: none;">CEP INVÁLIDO</div>
+            <div class="linha-cidade-estado">
+                <input type="text" name="cidade" id="cidade" placeholder="Cidade" readonly>
+                <input type="text" name="estado" id="estado" maxlength="2" placeholder="Estado" readonly>
+            </div>
+            <input type="tel" name="celular" id="celular" placeholder="Celular" maxlength="15" required>
+            <input type="password" name="senha" placeholder="Senha" minlength="6" required>
+            <button type="submit">Cadastrar</button>
+        </form>
+        <a href="index.html">Voltar para o inicio</a>
+    </section>
+    <script src="/js/cadastro.js"></script>
+</body>
+</html>

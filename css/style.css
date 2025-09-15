@@ -1,3 +1,28 @@
+/* Cidade e estado na mesma linha */
+.linha-cidade-estado {
+    display: flex;
+    gap: 2%;
+    width: 100%;
+}
+.linha-cidade-estado input[name="cidade"] {
+    flex: 2;
+}
+.linha-cidade-estado input[name="estado"] {
+    flex: 1;
+}
+/* Bairro e número na mesma linha */
+.linha-bairro-numero {
+    display: flex;
+    gap: 2%;
+    width: 100%;
+}
+.linha-bairro-numero input[name="bairro"] {
+    flex: 2;
+}
+.linha-bairro-numero input[name="numero"] {
+    flex: 1;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 :root {
@@ -506,6 +531,61 @@ section {
     font-size: 1.2rem;
     font-weight: bolder;
     text-decoration: none;
+}
+
+/* PAGINA CADASTRO */
+.cadastro-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.cadastro-section h2 {
+    margin-bottom: 2rem;
+    color: var(--blue);
+    font-size: 2.8rem;
+}
+
+#cadastroForm {
+    background: #fff;
+    box-shadow: var(--box-shadow);
+    border-radius: 1rem;
+    padding: 3rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 500px;
+    max-width: 800px;
+}
+
+#cadastroForm input {
+    width: 100%;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-radius: .5rem;
+    border: 1px solid #ccc;
+    font-size: 1.6rem;
+}
+
+#cadastroForm button {
+    width: 100%;
+    padding: 1rem;
+    background: var(--blue);
+    color: #fff;
+    border-radius: .5rem;
+    font-size: 1.7rem;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    border: none;
+}
+
+.cadastro-section a {
+    margin-top: 1.5rem;
+    color: var(--blue);
+    font-size: 1.5rem;
+    text-decoration: underline;
 }
 
 /* media responsividade  */

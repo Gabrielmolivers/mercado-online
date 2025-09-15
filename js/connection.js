@@ -5,7 +5,7 @@ const options = {
   //192.168.2.150
   host: '186.251.15.201',
   port: 3050,
-  database: 'C:\\CLIENTES_EXTERNO\\MERCADO_ONLINE\\BASE_MERCADO.FDB',
+  database: 'C:\\CLIENTES_EXTERNO\\MERCADO_ONLINE\\APPVENDA.FDB',
   user: 'SYSDBA',
   password: 'masterkey',
   lowercase_keys: false,
@@ -23,24 +23,7 @@ function conectar(callback) {
   });
 }
 
-function testarQuery(callback) {
-  conectar(function(err, db) {
-    if (err) {
-      callback(err);
-      return;
-    }
-    db.query('SELECT FIRST 10 * FROM PESSOAS', function(err, result) {
-      db.detach();
-      if (err) {
-        callback(err);
-      } else {
-        callback(null, result);
-      }
-    });
-  });
-}
 
 module.exports = {
   conectar,
-  testarQuery
 };

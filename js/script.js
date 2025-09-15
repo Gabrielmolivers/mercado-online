@@ -89,26 +89,12 @@ function conectarBanco() {
         .catch(err => alert('Erro: ' + err));
 }
 
-// Função para testar uma query
-function testarQuery() {
-    fetch('/api/testar-query')
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert('Resultado: ' + JSON.stringify(data.result));
-            } else {
-                alert('Erro: ' + data.error);
-            }
-        })
-        .catch(err => alert('Erro: ' + err));
-}
 
 // Adiciona eventos aos botões
 window.addEventListener('DOMContentLoaded', function() {
     var btnConectar = document.getElementById('btn-conectar');
-    var btnQuery = document.getElementById('btn-query');
     if (btnConectar) btnConectar.addEventListener('click', conectarBanco);
-    if (btnQuery) btnQuery.addEventListener('click', testarQuery);
+    
 });
 
 
