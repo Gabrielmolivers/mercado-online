@@ -556,8 +556,32 @@ section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 500px;
+    min-width: 300px;
     max-width: 800px;
+    width: 100%;
+    box-sizing: border-box;
+}
+@media (max-width: 600px) {
+    .cadastro-section {
+        padding: 1rem 2rem;
+        min-height: 100vh;
+    }
+    #cadastroForm {
+        min-width: unset;
+        max-width: 100%;
+        width: 100%;
+        padding: 2rem 1.5rem;
+    }
+    #cadastroForm input,
+    #cadastroForm button {
+        font-size: 1.4rem;
+        padding: 0.8rem;
+    }
+    .linha-bairro-numero,
+    .linha-cidade-estado {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
 }
 
 #cadastroForm input {
