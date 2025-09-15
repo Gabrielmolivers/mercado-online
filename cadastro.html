@@ -25,7 +25,9 @@
                 <input type="text" name="estado" id="estado" maxlength="2" placeholder="Estado" readonly>
             </div>
             <input type="tel" name="celular" id="celular" placeholder="Celular" maxlength="15" required>
-            <input type="password" name="senha" placeholder="Senha" minlength="6" required>
+            <input type="password" name="senha" placeholder="Senha" required>
+            <input type="password" name="confirmarSenha" id="confirmarSenha" placeholder="Confirmar Senha" required>
+            <div id="senha-erro" style="color: #d32f2f; font-size: 1.4rem; font-weight: bolder; padding-bottom: 1rem; display: none;">SENHAS NÃO SÃO IGUAIS</div>
             <button type="submit">Cadastrar</button>
         </form>
         <a href="index.html">Voltar para o inicio</a>
