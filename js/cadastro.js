@@ -121,14 +121,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const confirmarSenha = form.confirmarSenha.value;
         const erroSenha = document.getElementById('senha-erro');
         if (senha !== confirmarSenha) {
-            erroSenha.style.display = 'none';
-            btnCadastrar.disabled = false;
+            erroSenha.style.display = 'block';
+            btnCadastrar.disabled = true;
             e.preventDefault();
             document.getElementById('confirmarSenha').focus();
             return;
         } else {
-            erroSenha.style.display = 'block';
-            btnCadastrar.disabled = true;
+            erroSenha.style.display = 'none';
+            btnCadastrar.disabled = false;
         }
         // ...continua o envio normalmente
 
