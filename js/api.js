@@ -1,3 +1,7 @@
+// Cache simples em memória
+let produtosCache = null;
+let cacheTimestamp = 0;
+const CACHE_TTL = 60 * 60 * 1000; // 1 hora
 
 const express = require('express');
 const router = express.Router();
@@ -8,17 +12,23 @@ const connection = require('./connection');
 router.get('/produtos', (req, res) => {
   const offset = parseInt(req.query.offset) || 0;
   const limit = parseInt(req.query.limit) || 20;
+  const now = Date.now();
+  // Se cache válido, retorna do cache
+  if (produtosCache && (now - cacheTimestamp < CACHE_TTL)) {
+    const paginados = produtosCache.slice(offset, offset + limit);
+    return res.json({ success: true, produtos: paginados });
+  }
   connection.conectar((err, db) => {
     if (err) {
       return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco' });
     }
-    db.query(`SELECT FIRST ${limit} SKIP ${offset} PROCOD, DESCR, PRVENDA, IMAGEM FROM PRODUTOS`, [], (err, result) => {
+    db.query('SELECT PROCOD, DESCR, PRVENDA, IMAGEM FROM PRODUTOS', [], (err, result) => {
       if (err) {
         db.detach();
         return res.status(500).json({ success: false, error: 'Erro ao buscar produtos' });
       }
       // Converter BLOB para base64
-      const produtos = result.map(prod => {
+      produtosCache = result.map(prod => {
         let imagemBase64 = '';
         if (prod.IMAGEM) {
           if (Buffer.isBuffer(prod.IMAGEM)) {
@@ -34,8 +44,10 @@ router.get('/produtos', (req, res) => {
           imagem: imagemBase64
         };
       });
+      cacheTimestamp = Date.now();
       db.detach();
-      res.json({ success: true, produtos });
+      const paginados = produtosCache.slice(offset, offset + limit);
+      res.json({ success: true, produtos: paginados });
     });
   });
 });
