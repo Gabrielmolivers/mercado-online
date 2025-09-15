@@ -45,7 +45,7 @@ document.querySelector('.inicio').onclick = function () {
     window.location.href = '#';
 };
 
-var swiper = new Swiper(".produto-slider, .categorias-slider", {
+var swiper = new Swiper(".produto-slider, .categorias-slider, .destaque-lista", {
     loop: true,
     spaceBetween: 20,
 
@@ -55,7 +55,7 @@ var swiper = new Swiper(".produto-slider, .categorias-slider", {
     },
 
     autoplay: {
-        delay: 7500,
+        delay: 3000,
         disableOnInteraction: false,
     },
 

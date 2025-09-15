@@ -22,7 +22,7 @@
         <nav class="navbar">
             <a href="maisvendidos">Mais Vendidos</a>
             <a href="ofertas">Ofertas</a>
-            <a href="produtos">Produtos</a>
+            <a href="produtos.html">Produtos</a>
             <a href="departamentos">Departamentos</a>
             <a href="contato">Contato</a>
         </nav>
@@ -177,73 +177,35 @@
     <section class="produtos-destaque" id="produtos-destaque">
         <h1 class="cabecalho">Produtos em <span>Destaque</span></h1>
         <div class="swiper produto-slider">
-
-            <div class="swiper-wrapper">
-                <div class="swiper-slide box">
-                    <img src="image/produto1.png">
-                    <h1>Melancia</h1>
-                    <div class="price">R$ 5,99 kg</div>
-                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
+            <div class="swiper-wrapper" id="destaque-lista"></div>
+            <script>
+// Carrega os 20 produtos em destaque da base
+fetch('/api/produtos?offset=0&limit=20')
+    .then(res => res.json())
+    .then(data => {
+        const lista = document.getElementById('destaque-lista');
+        if (data.success && data.produtos.length > 0) {
+            lista.innerHTML = data.produtos.map(prod => `
+                <div class="swiper-slide box" data-procod="${prod.procod}" style="background: #fff; box-shadow: 0 .1rem 1rem rgb(124, 124, 124); border-radius: .5rem; text-align: center; display: block; height: 25rem; width: 20rem;">
+                    <img src="data:image/png;base64,${prod.imagem}" alt="${prod.nome}" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">
+                    <h1 style="font-size: 1.5rem; color: rgb(22, 87, 207);">${prod.nome}</h1>
+                    <div class="price" style="font-size: 1.5rem; color: #130f40; font-weight: bolder;">R$ ${prod.preco}</div>
+                    <a href="#" class="btn-produtos" style="color: #fff; border: 0px solid; margin: 1rem; display: block; padding: 1rem; border-radius: .5rem; background: rgb(22, 87, 207); font-size: 1.2rem; font-weight: bolder; text-decoration: none; transition: background 0.2s;">ADICIONAR AO CARRINHO</a>
                 </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto2.png">
-                    <h1>Picanha</h1>
-                    <div class="price">R$ 45,99 kg</div>
-                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto3.png">
-                    <h1>Coca-cola</h1>
-                    <div class="price">R$ 9,99 un</div>
-                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto4.png">
-                    <h1>Bandeja Ovos 30 un</h1>
-                    <div class="price">R$ 17,99 un</div>
-                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto5.jpg">
-                    <h1>Leite Lider 1L</h1>
-                    <div class="price">R$ 5,19 un</div>
-                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto6.jpg">
-                    <h1>Oleo de Soja Coamo</h1>
-                    <div class="price">R$ 6,99 un</div>
-                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto7.jpg">
-                    <h1>Detergente Ypê</h1>
-                    <div class="price">R$ 2,99 un</div>
-                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto8.jpg">
-                    <h1>Sabão em Pó Omo</h1>
-                    <div class="price">R$ 18,99 un</div>
-                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto9.jpg">
-                    <h1>Cebola</h1>
-                    <div class="price">R$ 2,99 kg</div>
-                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto10.jpg">
-                    <h1>Alho</h1>
-                    <div class="price">R$ 25,99 kg</div>
-                    <a href="#" class="btn-produtos">Adicionar ao Carrinho</a>
-                </div>
-            </div>
+            `).join('');
+        } else {
+            lista.innerHTML = '<div>Nenhum produto encontrado.</div>';
+        }
+    })
+    .catch(() => {
+        document.getElementById('destaque-lista').innerHTML = '<div>Erro ao buscar produtos.</div>';
+    });
+</script>
             <!--SETAS-->
             <div class="swiper-button-next"></div>
             <div class="swiper-button-prev"></div>
         </div>
+
     </section>
 
     <!--<footer>-->

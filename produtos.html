@@ -1,0 +1,93 @@
+<style>
+    .btn-produtos:hover {
+        background: #130f40 !important;
+        color: #fff !important;
+        font-weight: bolder;
+    }
+    #mostrarMais:hover {
+        background: #130f40 !important;
+        color: #fff !important;
+        font-weight: bolder;
+    }
+</style>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos - Mercado Online</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <section class="produtos-section">
+        <h2>Produtos</h2>
+        <div id="produtos-lista" style="display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center;"></div>
+    <button id="mostrarMais" style="margin: 2rem auto; display: block; padding: 1rem 2rem; font-size: 1.6rem; background: var(--blue); color: #fff; border: none; border-radius: .5rem; cursor: pointer; font-weight: bolder;">MOSTRAR MAIS</button>
+        <a href="index.html">Voltar para o início</a>
+    </section>
+    <script src="js/produtos.js"></script>
+<script>
+let offset = 0;
+const limit = 20;
+const lista = document.getElementById('produtos-lista');
+const btnMais = document.getElementById('mostrarMais');
+
+function renderProdutos(produtos) {
+    produtos.forEach(prod => {
+        const box = document.createElement('div');
+        box.className = 'box';
+        box.setAttribute('data-procod', prod.procod);
+        box.style = 'background: #fff; box-shadow: 0 .1rem 1rem rgb(124, 124, 124); border-radius: .5rem; text-align: center; display: block; height: 25rem; width: 20rem;';
+        box.innerHTML = `
+            <img src="data:image/png;base64,${prod.imagem}" alt="${prod.nome}" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">
+            <h1 style="font-size: 1.5rem; color: rgb(22, 87, 207);">${prod.nome}</h1>
+            <div class="price" style="font-size: 1.5rem; color: #130f40; font-weight: bolder;">R$ ${prod.preco}</div>
+            <a href="#" class="btn-produtos" style="color: #fff; border: 0px solid; margin: 1rem; display: block; padding: 1rem; border-radius: .5rem; background: rgb(22, 87, 207); font-size: 1.2rem; font-weight: bolder; text-decoration: none; transition: background 0.2s;">ADICIONAR AO CARRINHO</a>
+<style>
+    .btn-produtos:hover {
+        background: #130f40 !important;
+        color: #fff !important;
+        font-weight: bolder;
+    }
+</style>
+        `;
+        lista.appendChild(box);
+    });
+}
+
+function carregarProdutos() {
+    btnMais.disabled = true;
+    btnMais.textContent = 'Carregando...';
+    fetch(`/api/produtos?offset=${offset}&limit=${limit}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.produtos.length > 0) {
+                renderProdutos(data.produtos);
+                offset += limit;
+                btnMais.disabled = false;
+                btnMais.textContent = 'MOSTRAR MAIS';
+                if (data.produtos.length < limit) {
+                    btnMais.style.display = 'none';
+                }
+            } else {
+                btnMais.style.display = 'none';
+                if (offset === 0) {
+                    lista.innerHTML = '<div>Nenhum produto encontrado.</div>';
+                }
+            }
+        })
+        .catch(() => {
+            btnMais.disabled = false;
+            btnMais.textContent = 'MOSTRAR MAIS';
+            if (offset === 0) {
+                lista.innerHTML = '<div>Erro ao buscar produtos.</div>';
+            }
+        });
+}
+
+btnMais.addEventListener('click', carregarProdutos);
+window.addEventListener('DOMContentLoaded', carregarProdutos);
+</script>
+</script>
+</body>
+</html>

@@ -3,6 +3,45 @@ const express = require('express');
 const router = express.Router();
 const connection = require('./connection');
 
+
+// Rota para buscar produtos
+router.get('/produtos', (req, res) => {
+  const offset = parseInt(req.query.offset) || 0;
+  const limit = parseInt(req.query.limit) || 20;
+  connection.conectar((err, db) => {
+    if (err) {
+      return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco' });
+    }
+    db.query(`SELECT FIRST ${limit} SKIP ${offset} PROCOD, DESCR, PRVENDA, IMAGEM FROM PRODUTOS`, [], (err, result) => {
+      if (err) {
+        db.detach();
+        return res.status(500).json({ success: false, error: 'Erro ao buscar produtos' });
+      }
+      // Converter BLOB para base64
+      const produtos = result.map(prod => {
+        let imagemBase64 = '';
+        if (prod.IMAGEM) {
+          if (Buffer.isBuffer(prod.IMAGEM)) {
+            imagemBase64 = prod.IMAGEM.toString('base64');
+          } else if (typeof prod.IMAGEM === 'object' && prod.IMAGEM.buffer) {
+            imagemBase64 = Buffer.from(prod.IMAGEM.buffer).toString('base64');
+          }
+        }
+        return {
+          procod: prod.PROCOD,
+          nome: prod.DESCR,
+          preco: prod.PRVENDA,
+          imagem: imagemBase64
+        };
+      });
+      db.detach();
+      res.json({ success: true, produtos });
+    });
+  });
+});
+
+
+
 // Rota para cadastro de novo cliente
 router.post('/cadastro', express.json(), (req, res) => {
   connection.conectar((err, db) => {
