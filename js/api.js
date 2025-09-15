@@ -1,7 +1,7 @@
 // Cache simples em memória
 let produtosCache = null;
 let cacheTimestamp = 0;
-const CACHE_TTL = 60 * 60 * 1000; // 1 hora
+const CACHE_TTL = 5 * 1000; // 5 segundos
 
 const express = require('express');
 const router = express.Router();
@@ -30,18 +30,32 @@ router.get('/produtos', (req, res) => {
       // Converter BLOB para base64
       produtosCache = result.map(prod => {
         let imagemBase64 = '';
+        let imagemTipo = '';
+        let buffer = null;
         if (prod.IMAGEM) {
           if (Buffer.isBuffer(prod.IMAGEM)) {
-            imagemBase64 = prod.IMAGEM.toString('base64');
+            buffer = prod.IMAGEM;
           } else if (typeof prod.IMAGEM === 'object' && prod.IMAGEM.buffer) {
-            imagemBase64 = Buffer.from(prod.IMAGEM.buffer).toString('base64');
+            buffer = Buffer.from(prod.IMAGEM.buffer);
+          }
+          if (buffer && buffer.length > 0) {
+            // Detecta tipo pelo header do arquivo
+            if (buffer[0] === 0xFF && buffer[1] === 0xD8) {
+              imagemTipo = 'jpeg';
+            } else if (buffer[0] === 0x89 && buffer[1] === 0x50) {
+              imagemTipo = 'png';
+            } else {
+              imagemTipo = 'jpeg'; // Força jpeg se não detectar png
+            }
+            imagemBase64 = buffer.toString('base64');
           }
         }
         return {
           procod: prod.PROCOD,
           nome: prod.DESCR,
           preco: prod.PRVENDA,
-          imagem: imagemBase64
+          imagem: imagemBase64,
+          imagemTipo: imagemTipo
         };
       });
       cacheTimestamp = Date.now();

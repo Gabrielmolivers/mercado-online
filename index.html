@@ -187,7 +187,7 @@ fetch('/api/produtos?offset=0&limit=20')
         if (data.success && data.produtos.length > 0) {
             lista.innerHTML = data.produtos.map(prod => `
                 <div class="swiper-slide box" data-procod="${prod.procod}" style="background: #fff; box-shadow: 0 .1rem 1rem rgb(124, 124, 124); border-radius: .5rem; text-align: center; display: block; height: 25rem; width: 20rem;">
-                    <img src="data:image/png;base64,${prod.imagem}" alt="${prod.nome}" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">
+                    ${prod.imagemTipo && prod.imagem ? `<img src="data:image/${prod.imagemTipo};base64,${prod.imagem}" alt="${prod.nome}" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">` : `<img src="image/SEM-IMAGEM.PNG" alt="Sem imagem" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">`}
                     <h1 style="font-size: 1.5rem; color: rgb(22, 87, 207);">${prod.nome}</h1>
                     <div class="price" style="font-size: 1.5rem; color: #130f40; font-weight: bolder;">R$ ${prod.preco}</div>
                     <a href="#" class="btn-produtos" style="color: #fff; border: 0px solid; margin: 1rem; display: block; padding: 1rem; border-radius: .5rem; background: rgb(22, 87, 207); font-size: 1.2rem; font-weight: bolder; text-decoration: none; transition: background 0.2s;">ADICIONAR AO CARRINHO</a>
