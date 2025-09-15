@@ -1,7 +1,8 @@
 // Cache simples em memória
 let produtosCache = null;
 let cacheTimestamp = 0;
-const CACHE_TTL = 5 * 1000; // 5 segundos
+const CACHE_TTL = 60 * 60 * 1000; // 1 hora
+// const CACHE_TTL = 5 * 1000; // 5 segundos
 
 const express = require('express');
 const router = express.Router();
