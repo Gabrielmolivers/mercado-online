@@ -34,7 +34,6 @@ const btnMais = document.getElementById('mostrarMais');
 
 function renderProdutos(produtos) {
     produtos.forEach(prod => {
-        console.log('Produto:', prod.nome, 'Tipo:', prod.imagemTipo, 'Base64:', prod.imagem ? prod.imagem.substring(0,30) : '');
         const box = document.createElement('div');
         box.className = 'box';
         box.setAttribute('data-procod', prod.procod);
