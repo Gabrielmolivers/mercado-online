@@ -37,7 +37,7 @@ router.get('/produtos', (req, res) => {
       finalizarResposta('Erro ao conectar ao banco');
       return;
     }
-    db.query('SELECT PROCOD, DESCR, PRVENDA, IMAGEM FROM PRODUTOS', [], (err, result) => {
+    db.query('SELECT PROCOD, DESCR, PRVENDA, IMAGEM, UND FROM PRODUTOS', [], (err, result) => {
       if (respostaEnviada) { db.detach(); return; }
       if (err) {
         db.detach();
@@ -99,6 +99,7 @@ router.get('/produtos', (req, res) => {
                 procod: prod.PROCOD,
                 nome: prod.DESCR,
                 preco: prod.PRVENDA,
+                und: prod.UND,
                 imagem: imagemBase64,
                 imagemTipo: imagemTipo
               });
@@ -139,6 +140,7 @@ router.get('/produtos', (req, res) => {
               procod: prod.PROCOD,
               nome: prod.DESCR,
               preco: prod.PRVENDA,
+              und: prod.UND,
               imagem: imagemBase64,
               imagemTipo: imagemTipo
             });
