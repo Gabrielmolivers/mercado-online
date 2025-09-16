@@ -1,3 +1,41 @@
+.cart-item {
+    border: 0px solid;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    margin: 1rem 0;
+}
+.cart-item img {
+    height: 10rem;
+    width: 10rem;
+    object-fit: contain;
+}
+.cart-item .fa-trash {
+    position: absolute;
+    font-size: 2rem;
+    color: var(--light-color);
+    cursor: pointer;
+    top: 50%;
+    right: 2rem;
+    transform: translateY(-50%);
+}
+.cart-item .fa-trash:hover {
+    color: var(--blue);
+}
+.cart-item .content h3 {
+    color: var(--black);
+    font-size: 1.7rem;
+    padding-bottom: 1rem;
+}
+.cart-item .content span {
+    color: var(--light-color);
+    font-size: 1.6rem;
+}
+.cart-item .content quantity {
+    padding-left: 1rem;
+}
 /* Cidade e estado na mesma linha */
 .linha-cidade-estado {
     display: flex;
@@ -55,7 +93,7 @@ html {
 
 body {
     background: #eee;
-
+    padding-top: 80px;
 }
 
 /* banner */

@@ -17,9 +17,10 @@ document.querySelector('#cart-btn').onclick = () => {
 };
 
 let loginForm = document.querySelector('.login-form');
-
 document.querySelector('#login-btn').onclick = () => {
-    loginForm.classList.toggle('active');
+    if (loginForm) {
+        loginForm.classList.toggle('active');
+    }
     searchForm.classList.remove('active');
     shoppingCart.classList.remove('active');
     navbar.classList.remove('active');
@@ -41,39 +42,39 @@ window.onscroll = () => {
     navbar.classList.remove('active');
 }
 
-document.querySelector('.inicio').onclick = function () {
-    window.location.href = '#';
-};
 
-var swiper = new Swiper(".produto-slider, .categorias-slider, .destaque-lista", {
-    loop: true,
-    spaceBetween: 20,
 
-    navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
-    },
+if (typeof Swiper !== 'undefined') {
+    var swiper = new Swiper(".produto-slider, .categorias-slider", {
+        loop: true,
+        spaceBetween: 20,
 
-    autoplay: {
-        delay: 3000,
-        disableOnInteraction: false,
-    },
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
 
-    breakpoints: {
-        0: {
-            slidesPerView: 2,
+        autoplay: {
+            delay: 7500,
+            disableOnInteraction: false,
         },
-        768: {
-            slidesPerView: 3,
-        },
-        1020: {
-            slidesPerView: 4,
-        },
-        1240: {
-            slidesPerView: 5,
-        },
-    }
-});
+
+        breakpoints: {
+            0: {
+                slidesPerView: 2,
+            },
+            768: {
+                slidesPerView: 3,
+            },
+            1020: {
+                slidesPerView: 4,
+            },
+            1240: {
+                slidesPerView: 5,
+            },
+        }
+    });
+}
 
 // Função para conectar ao banco Firebird
 function conectarBanco() {
@@ -96,5 +97,6 @@ window.addEventListener('DOMContentLoaded', function() {
     if (btnConectar) btnConectar.addEventListener('click', conectarBanco);
     
 });
+
 
 

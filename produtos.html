@@ -4,41 +4,153 @@
         color: #fff !important;
         font-weight: bolder;
     }
+
     #mostrarMais:hover {
         background: #130f40 !important;
         color: #fff !important;
         font-weight: bolder;
     }
+
+    #produtos-lista {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        justify-content: center;
+    }
+
+    .box {
+        flex: 1 1 18%;
+        max-width: 18%;
+        min-width: 18%;
+        box-sizing: border-box;
+    }
+
+    @media (max-width: 700px) {
+        .box {
+            flex: 1 1 30%;
+            max-width: 30%;
+            min-width: 30%;
+        }
+    }
+
+    @media (max-width: 400px) {
+        #produtos-lista {
+            gap: 1rem;
+        }
+
+        .box {
+            flex: 1 1 42%;
+            max-width: 42%;
+            min-width: 42%;
+        }
+    }
 </style>
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Produtos - Mercado Online</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
+
 <body>
+    <header class="header">
+        <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
+        <nav class="navbar">
+            <a href="maisvendidos">Mais Vendidos</a>
+            <a href="ofertas">Ofertas</a>
+            <a href="produtos.html">Produtos</a>
+            <a href="departamentos">Departamentos</a>
+            <a href="contato">Contato</a>
+        </nav>
+
+        <div class="icons">
+            <div id="search-btn" class="fas fa-search"></div>
+            <div id="cart-btn" class="fas fa-shopping-cart"></div>
+            <div id="login-btn" class="fas fa-user"></div>
+            <div id="menu-btn" class="fas fa-bars"></div>
+
+        </div>
+
+        <form class="search-form">
+            <input type="text" id="search-box" placeholder="Buscar produtos...">
+            <label for="search-box" class="fas fa-search"></label>
+        </form>
+
+        <div class="shopping-cart">
+            <div class="cart-item">
+                <i class="fas fa-trash"></i>
+                <img src="image/produto1.png" alt="">
+                <div class="content">
+                    <h3>Melancia</h3>
+                    <span class="price">R$ 5,99 kg | </span>
+                    <span class="qtd">Qtde: 2,00 kg</span>
+                </div>
+            </div>
+            <div class="cart-item">
+                <i class="fas fa-trash"></i>
+                <img src="image/produto2.png" alt="">
+                <div class="content">
+                    <h3>Picanha</h3>
+                    <span class="price">R$ 45,99 kg | </span>
+                    <span class="qtd">Qtde: 1,00 kg</span>
+                </div>
+            </div>
+
+            <div class="cart-item">
+                <i class="fas fa-trash"></i>
+                <img src="image/produto3.png" alt="">
+                <div class="content">
+                    <h3>Coca-cola 2L</h3>
+                    <span class="price">R$ 9,99 und | </span>
+                    <span class="qtd">Qtde: 1 und</span>
+                </div>
+            </div>
+            <div class="total">
+                <h3>Total:<span class="price"> R$ 67,96</span></h3>
+
+            </div>
+            <a href="#" class="btn">Finalizar Compra</a>
+        </div>
+
+        <form action="#" class="login-form">
+            <h3>Seja Bem-Vindo(a)!</h3>
+            <p>Insira seus dados nos campos abaixo para fazer login.</p>
+            <input type="email" placeholder="Email" required>
+            <input type="password" placeholder="Senha" required>
+            <a href="#">Esqueceu a senha?</a>
+            <button type="submit" class="btn">Entrar</button>
+            <button type="button" class="criar-btn" onclick="window.location.href='cadastro.html'">Criar uma
+                Conta</button>
+        </form>
+
+    </header>
     <section class="produtos-section">
         <h2>Produtos</h2>
         <div id="produtos-lista" style="display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center;"></div>
-    <button id="mostrarMais" style="margin: 2rem auto; display: block; padding: 1rem 2rem; font-size: 1.6rem; background: var(--blue); color: #fff; border: none; border-radius: .5rem; cursor: pointer; font-weight: bolder;">MOSTRAR MAIS</button>
+        <button id="mostrarMais"
+            style="margin: 2rem auto; display: block; padding: 1rem 2rem; font-size: 1.6rem; background: var(--blue); color: #fff; border: none; border-radius: .5rem; cursor: pointer; font-weight: bolder;">MOSTRAR
+            MAIS</button>
         <a href="index.html">Voltar para o início</a>
     </section>
+    <script src="js/script.js"></script>
     <script src="js/produtos.js"></script>
-<script>
-let offset = 0;
-const limit = 20;
-const lista = document.getElementById('produtos-lista');
-const btnMais = document.getElementById('mostrarMais');
+    <script>
+        let offset = 0;
+        const limit = 20;
+        const lista = document.getElementById('produtos-lista');
+        const btnMais = document.getElementById('mostrarMais');
 
-function renderProdutos(produtos) {
-    produtos.forEach(prod => {
-        const box = document.createElement('div');
-        box.className = 'box';
-        box.setAttribute('data-procod', prod.procod);
-        box.style = 'background: #fff; box-shadow: 0 .1rem 1rem rgb(124, 124, 124); border-radius: .5rem; text-align: center; display: block; height: 25rem; width: 20rem;';
-        box.innerHTML = `
+        function renderProdutos(produtos) {
+            produtos.forEach(prod => {
+                const box = document.createElement('div');
+                box.className = 'box';
+                box.setAttribute('data-procod', prod.procod);
+                box.style = 'background: #fff; box-shadow: 0 .1rem 1rem rgb(124, 124, 124); border-radius: .5rem; text-align: center; display: block; height: 25rem; width: 20rem;';
+                box.innerHTML = `
             ${prod.imagemTipo && prod.imagem ? `<img src="data:image/${prod.imagemTipo};base64,${prod.imagem}" alt="${prod.nome}" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">` : `<img src="image/SEM-IMAGEM.png" alt="Sem imagem" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">`}
             <h1 style="font-size: 1.5rem; color: rgb(22, 87, 207);">${prod.nome}</h1>
             <div class="price" style="font-size: 1.5rem; color: #130f40; font-weight: bolder;">R$ ${prod.preco}</div>
@@ -51,43 +163,44 @@ function renderProdutos(produtos) {
     }
 </style>
         `;
-        lista.appendChild(box);
-    });
-}
+                lista.appendChild(box);
+            });
+        }
 
-function carregarProdutos() {
-    btnMais.disabled = true;
-    btnMais.textContent = 'Carregando...';
-    fetch(`/api/produtos?offset=${offset}&limit=${limit}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success && data.produtos.length > 0) {
-                renderProdutos(data.produtos);
-                offset += limit;
-                btnMais.disabled = false;
-                btnMais.textContent = 'MOSTRAR MAIS';
-                if (data.produtos.length < limit) {
-                    btnMais.style.display = 'none';
-                }
-            } else {
-                btnMais.style.display = 'none';
-                if (offset === 0) {
-                    lista.innerHTML = '<div>Nenhum produto encontrado.</div>';
-                }
-            }
-        })
-        .catch(() => {
-            btnMais.disabled = false;
-            btnMais.textContent = 'MOSTRAR MAIS';
-            if (offset === 0) {
-                lista.innerHTML = '<div>Erro ao buscar produtos.</div>';
-            }
-        });
-}
+        function carregarProdutos() {
+            btnMais.disabled = true;
+            btnMais.textContent = 'Carregando...';
+            fetch(`/api/produtos?offset=${offset}&limit=${limit}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.produtos.length > 0) {
+                        renderProdutos(data.produtos);
+                        offset += limit;
+                        btnMais.disabled = false;
+                        btnMais.textContent = 'MOSTRAR MAIS';
+                        if (data.produtos.length < limit) {
+                            btnMais.style.display = 'none';
+                        }
+                    } else {
+                        btnMais.style.display = 'none';
+                        if (offset === 0) {
+                            lista.innerHTML = '<div>Nenhum produto encontrado.</div>';
+                        }
+                    }
+                })
+                .catch(() => {
+                    btnMais.disabled = false;
+                    btnMais.textContent = 'MOSTRAR MAIS';
+                    if (offset === 0) {
+                        lista.innerHTML = '<div>Erro ao buscar produtos.</div>';
+                    }
+                });
+        }
 
-btnMais.addEventListener('click', carregarProdutos);
-window.addEventListener('DOMContentLoaded', carregarProdutos);
-</script>
-</script>
+        btnMais.addEventListener('click', carregarProdutos);
+        window.addEventListener('DOMContentLoaded', carregarProdutos);
+    </script>
+    </script>
 </body>
+
 </html>
