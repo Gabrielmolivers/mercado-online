@@ -10,13 +10,13 @@ const connection = require('./connection');
 
 // Rota para buscar produtos
 router.get('/produtos', (req, res) => {
+  const offset = parseInt(req.query.offset) || 0;
+  const limit = parseInt(req.query.limit) || 20;
   const now = Date.now();
   if (produtosCache && (now - cacheTimestamp < CACHE_TTL)) {
     const paginados = produtosCache.slice(offset, offset + limit);
     return res.json({ success: true, produtos: paginados });
   }
-  const offset = parseInt(req.query.offset) || 0;
-  const limit = parseInt(req.query.limit) || 20;
   let respostaEnviada = false;
   function finalizarResposta(erro, produtosProcessados) {
     if (!respostaEnviada) {
