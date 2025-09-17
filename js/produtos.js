@@ -2,7 +2,6 @@
 // Script para funcionalidades relacionadas aos produtos
 
 
-let produtosCache = [];
 let produtosOrdenados = [];
 let paginaAtual = 1;
 const itensPorPagina = 20;
@@ -44,19 +43,21 @@ function exibirProdutos(lista) {
 }
 
 function ordenarProdutos(tipo) {
-    let lista = [...produtosCache];
-    if (tipo === 'menor') {
-        lista.sort((a, b) => parseFloat(a.preco) - parseFloat(b.preco));
-        lista = lista.slice(0, MAX_PRODUTOS);
-    } else if (tipo === 'maior') {
-        lista.sort((a, b) => parseFloat(b.preco) - parseFloat(a.preco));
-        lista = lista.slice(0, MAX_PRODUTOS);
-    } else {
-        lista = lista.slice(0, MAX_PRODUTOS);
-    }
-    produtosOrdenados = lista;
-    paginaAtual = 1;
-    exibirProdutos(produtosOrdenados.slice(0, itensPorPagina));
+    buscarProdutos().then(produtos => {
+        let lista = [...produtos];
+        if (tipo === 'menor') {
+            lista.sort((a, b) => parseFloat(a.preco) - parseFloat(b.preco));
+            lista = lista.slice(0, MAX_PRODUTOS);
+        } else if (tipo === 'maior') {
+            lista.sort((a, b) => parseFloat(b.preco) - parseFloat(a.preco));
+            lista = lista.slice(0, MAX_PRODUTOS);
+        } else {
+            lista = lista.slice(0, MAX_PRODUTOS);
+        }
+        produtosOrdenados = lista;
+        paginaAtual = 1;
+        exibirProdutos(produtosOrdenados.slice(0, itensPorPagina));
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
