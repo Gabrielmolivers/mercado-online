@@ -8,7 +8,9 @@ const itensPorPagina = 20;
 const MAX_PRODUTOS = 500;
 
 function buscarProdutos(offset = 0, limit = 20) {
-    // Busca todos os produtos da base, forçando atualização (ignorando cache)
+    // Mostra loader
+    const loader = document.getElementById('loader');
+    if (loader) loader.style.display = 'flex';
     const unique = Date.now();
     return fetch(`/api/produtos?offset=0&limit=10000&_=${unique}`, {
         headers: {
@@ -19,9 +21,14 @@ function buscarProdutos(offset = 0, limit = 20) {
     })
         .then(res => res.json())
         .then(data => {
+            if (loader) loader.style.display = 'none';
             if (data.success && Array.isArray(data.produtos)) {
                 return data.produtos;
             }
+            return [];
+        })
+        .catch(() => {
+            if (loader) loader.style.display = 'none';
             return [];
         });
 }

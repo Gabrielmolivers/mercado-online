@@ -5,8 +5,6 @@
     align-items: center;
     gap: 0.5rem;
     margin: 2rem 0;
-}
-
 #paginacao button, #paginacao .pagina-btn {
     background: #fff;
     border: 2px solid var(--blue);
@@ -16,20 +14,18 @@
     border-radius: 0.4rem;
     cursor: pointer;
     transition: background 0.2s, color 0.2s, border 0.2s;
-}
-
 #paginacao button:disabled, #paginacao .pagina-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
-
+}
 #paginacao .pagina-btn.active {
     background: var(--blue);
     color: #fff;
     border: 2px solid var(--blue);
     font-weight: bold;
 }
-
+}
 #paginacao .pagina-btn {
     margin: 0 0.2rem;
 }
@@ -39,6 +35,23 @@
     font-weight: normal;
     margin-left: 0.1rem;
 }
+
+/* Loader Spinner */
+.spinner {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #3498db;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    animation: spin 1s linear infinite;
+    margin: auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 .box-footer .price {
     font-size: 2.1rem !important;
     color: #130f40;
