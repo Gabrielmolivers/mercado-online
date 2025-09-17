@@ -8,8 +8,15 @@ const itensPorPagina = 20;
 const MAX_PRODUTOS = 500;
 
 function buscarProdutos(offset = 0, limit = 20) {
-    // Busca todos os produtos da base
-    return fetch(`/api/produtos?offset=0&limit=10000`)
+    // Busca todos os produtos da base, forçando atualização (ignorando cache)
+    const unique = Date.now();
+    return fetch(`/api/produtos?offset=0&limit=10000&_=${unique}`, {
+        headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        }
+    })
         .then(res => res.json())
         .then(data => {
             if (data.success && Array.isArray(data.produtos)) {
@@ -75,6 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
             atualizarProdutosOrdenados(e.target.value);
         });
     }
+
+    // Polling a cada 5 minutos para atualizar os produtos
+    setInterval(() => {
+        // Sempre faz nova conexão e importa os produtos
+        atualizarProdutosOrdenados(selectOrdenar ? selectOrdenar.value : 'padrao');
+    }, 300000); // 300000 ms = 5 minutos
 });
 
 

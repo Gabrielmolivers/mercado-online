@@ -169,36 +169,28 @@
         }
 
         function carregarProdutos() {
-            btnMais.disabled = true;
-            btnMais.textContent = 'Carregando...';
+            // btnMais removido, não faz mais parte da interface
             fetch(`/api/produtos?offset=${offset}&limit=${limit}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success && data.produtos.length > 0) {
                         renderProdutos(data.produtos);
                         offset += limit;
-                        btnMais.disabled = false;
-                        btnMais.textContent = 'MOSTRAR MAIS';
-                        if (data.produtos.length < limit) {
-                            btnMais.style.display = 'none';
-                        }
+                        // btnMais removido, não faz mais parte da interface
+                        // btnMais removido, não faz mais parte da interface
                     } else {
-                        btnMais.style.display = 'none';
                         if (offset === 0) {
                             lista.innerHTML = '<div>Nenhum produto encontrado.</div>';
                         }
                     }
                 })
                 .catch(() => {
-                    btnMais.disabled = false;
-                    btnMais.textContent = 'MOSTRAR MAIS';
                     if (offset === 0) {
                         lista.innerHTML = '<div>Erro ao buscar produtos.</div>';
                     }
                 });
         }
 
-        btnMais.addEventListener('click', carregarProdutos);
         window.addEventListener('DOMContentLoaded', carregarProdutos);
     </script>
     </script>

@@ -1,7 +1,4 @@
 // Cache simples em memória
-let produtosCache = null;
-let cacheTimestamp = 0;
-const CACHE_TTL = 60 * 60 * 1000; // 1 hora
 
 const express = require('express');
 const router = express.Router();
@@ -12,12 +9,6 @@ const connection = require('./connection');
 router.get('/produtos', (req, res) => {
   const offset = parseInt(req.query.offset) || 0;
   const limit = parseInt(req.query.limit) || 20;
-  const now = Date.now();
-  // Se cache válido, retorna do cache
-  if (produtosCache && (now - cacheTimestamp < CACHE_TTL)) {
-    const paginados = produtosCache.slice(offset, offset + limit);
-    return res.json({ success: true, produtos: paginados });
-  }
   let respostaEnviada = false;
   function finalizarResposta(erro, produtosProcessados) {
     if (!respostaEnviada) {
@@ -25,9 +16,7 @@ router.get('/produtos', (req, res) => {
       if (erro) {
         return res.status(500).json({ success: false, error: erro });
       }
-      produtosCache = produtosProcessados || [];
-      cacheTimestamp = Date.now();
-      const paginados = produtosCache.slice(offset, offset + limit);
+      const paginados = (produtosProcessados || []).slice(offset, offset + limit);
       res.json({ success: true, produtos: paginados });
     }
   }
