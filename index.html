@@ -185,7 +185,6 @@ fetch('/api/produtos?offset=0&limit=20')
     .then(data => {
         const lista = document.getElementById('destaque-lista');
         if (data.success && data.produtos.length > 0) {
-            // Log removido conforme solicitado
             lista.innerHTML = data.produtos.map(prod => `
                 <div class="swiper-slide box" data-procod="${prod.procod}" style="background: #fff; box-shadow: 0 .1rem 1rem rgb(124, 124, 124); border-radius: .5rem; text-align: center; display: block; height: 25rem; width: 20rem; position: relative;">
                     ${prod.imagemTipo && prod.imagem ? `<img src="data:image/${prod.imagemTipo};base64,${prod.imagem}" alt="${prod.nome}" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">` : `<img src="image/SEM-IMAGEM.png" alt="Sem imagem" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">`}
@@ -199,6 +198,29 @@ fetch('/api/produtos?offset=0&limit=20')
                     </div>
                 </div>
             `).join('');
+            // Executa o Swiper somente após renderizar os produtos
+            if (typeof Swiper !== 'undefined') {
+                setTimeout(function() {
+                    new Swiper(".produto-slider", {
+                        loop: true,
+                        spaceBetween: 20,
+                        navigation: {
+                            nextEl: '.swiper-button-next',
+                            prevEl: '.swiper-button-prev',
+                        },
+                        autoplay: {
+                            delay: 7500,
+                            disableOnInteraction: false,
+                        },
+                        breakpoints: {
+                            0: { slidesPerView: 2 },
+                            768: { slidesPerView: 3 },
+                            1020: { slidesPerView: 4 },
+                            1240: { slidesPerView: 5 },
+                        }
+                    });
+                }, 100);
+            }
         } else {
             lista.innerHTML = '<div>Nenhum produto encontrado.</div>';
         }

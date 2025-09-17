@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => {
         // Sempre faz nova conexão e importa os produtos
         atualizarProdutosOrdenados(selectOrdenar ? selectOrdenar.value : 'padrao');
-    }, 300000); // 300000 ms = 5 minutos
+    }, 3600000); // 3600000 ms = 1 hora
 });
 
 
