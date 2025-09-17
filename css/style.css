@@ -1,3 +1,38 @@
+/* PAGINAÇÃO */
+#paginacao {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 2rem 0;
+}
+
+#paginacao button, #paginacao .pagina-btn {
+    background: #fff;
+    border: 2px solid var(--blue);
+    color: var(--blue);
+    font-size: 1.2rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+}
+
+#paginacao button:disabled, #paginacao .pagina-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#paginacao .pagina-btn.active {
+    background: var(--blue);
+    color: #fff;
+    border: 2px solid var(--blue);
+    font-weight: bold;
+}
+
+#paginacao .pagina-btn {
+    margin: 0 0.2rem;
+}
 .und {
     font-size: 1rem;
     color: var(--light-color);

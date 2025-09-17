@@ -192,7 +192,7 @@ fetch('/api/produtos?offset=0&limit=20')
                     <h1 style="font-size: 1.5rem; color: rgb(22, 87, 207);">${prod.nome}</h1>
                     <div class="box-footer">
                         <div style="display: flex; align-items: baseline;">
-                            <span class="price">R$ ${prod.preco}</span>
+                            <span class="price">R$ ${(Number(prod.preco)).toFixed(2)}</span>
                             <span class="und">/${prod.und}</span>
                         </div>
                         <button class="add-carrinho-btn"><i class="fas fa-shopping-cart"></i></button>
