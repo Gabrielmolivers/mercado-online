@@ -1,3 +1,18 @@
+/* Estilo para frase VER MAIS do carrinho */
+.ver-mais {
+    text-align: center;
+    margin: 1rem 0;
+}
+.btn-ver-mais {
+    color: var(--blue);
+    font-weight: bolder;
+    font-size: 1.2rem;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.btn-ver-mais:hover {
+    color: #1a4fa3;
+}
 /* PAGINAÇÃO */
 #paginacao {
     display: flex;
@@ -474,8 +489,9 @@ section {
     width: 30rem;
     background: #fff;
     box-shadow: var(--box-shadow);
-    padding: 2rem;
+    padding: 1rem 1.5rem;
     border-radius: .5rem;
+    min-height: 12rem;
 
 }
 
@@ -486,11 +502,11 @@ section {
 
 .header .login-form input {
     width: 100%;
-    padding: 1rem 1.5rem;
-    font-size: 1.6rem;
+    padding: 0.6rem 1rem;
+    font-size: 1.4rem;
     color: var(--black);
     text-transform: none;
-    margin: .5rem 0;
+    margin: .3rem 0;
     border-radius: .5rem;
     background: #eee;
 }

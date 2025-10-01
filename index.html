@@ -20,11 +20,11 @@
     <header class="header">
     <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
         <nav class="navbar">
-            <a href="maisvendidos">Mais Vendidos</a>
-            <a href="ofertas">Ofertas</a>
+            <a href="maisvendidos" style="text-decoration: line-through;">Mais Vendidos</a>
+            <a href="ofertas" style="text-decoration: line-through;">Ofertas</a>
             <a href="produtos.html">Produtos</a>
-            <a href="departamentos">Departamentos</a>
-            <a href="contato">Contato</a>
+            <a href="departamentos" style="text-decoration: line-through;">Departamentos</a>
+            <a href="contato" style="text-decoration: line-through;">Contato</a>
         </nav>
 
         <div class="icons">
@@ -76,11 +76,11 @@
             <a href="#" class="btn">Finalizar Compra</a>
         </div>
 
-        <form action="#" class="login-form">
+    <form action="#" class="login-form">
             <h3>Seja Bem-Vindo(a)!</h3>
             <p>Insira seus dados nos campos abaixo para fazer login.</p>
-            <input type="email" class="box" placeholder="Email" required>
-            <input type="password" class="box" placeholder="Senha" required>
+            <input type="email" placeholder="Email" required>
+            <input type="password" placeholder="Senha" required>
             <a href="#">Esqueceu a senha?</a>
             <button type="submit" class="btn">Entrar</button>
             <button type="button" class="criar-btn" onclick="window.location.href='cadastro.html'">Criar uma Conta</button>
@@ -176,14 +176,20 @@
 
     <section class="produtos-destaque" id="produtos-destaque">
         <h1 class="cabecalho">Produtos em <span>Destaque</span></h1>
+        <div id="loader-destaque" style="display:none; justify-content:center; align-items:center; margin:2rem 0;">
+            <div class="spinner"></div>
+        </div>
         <div class="swiper produto-slider">
             <div class="swiper-wrapper" id="destaque-lista"></div>
             <script>
 // Carrega os 20 produtos em destaque da base
+const loaderDestaque = document.getElementById('loader-destaque');
+if (loaderDestaque) loaderDestaque.style.display = 'flex';
 fetch('/api/produtos?offset=0&limit=20')
     .then(res => res.json())
     .then(data => {
         const lista = document.getElementById('destaque-lista');
+        if (loaderDestaque) loaderDestaque.style.display = 'none';
         if (data.success && data.produtos.length > 0) {
             lista.innerHTML = data.produtos.map(prod => `
                 <div class="swiper-slide box" data-procod="${prod.procod}" style="background: #fff; box-shadow: 0 .1rem 1rem rgb(124, 124, 124); border-radius: .5rem; text-align: center; display: block; height: 25rem; width: 20rem; position: relative;">
@@ -242,6 +248,82 @@ fetch('/api/produtos?offset=0&limit=20')
     </footer>
 
     <script src="js/script.js"></script>
+
+<script>
+// Carrinho: Adiciona evento aos botões de adicionar ao carrinho
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('add-carrinho-btn') || (e.target.closest('.add-carrinho-btn'))) {
+        let btn = e.target.classList.contains('add-carrinho-btn') ? e.target : e.target.closest('.add-carrinho-btn');
+        let box = btn.closest('.box');
+        if (!box) return;
+        let procod = box.getAttribute('data-procod');
+        let nome = box.querySelector('h1')?.textContent;
+        let preco = box.querySelector('.price')?.textContent.replace('R$', '').replace(/\/.*/, '').trim();
+        let und = box.querySelector('.und')?.textContent.replace('/', '').trim();
+        let img = box.querySelector('img')?.getAttribute('src');
+
+        let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
+        let existente = carrinho.find(p => p.procod === procod);
+        if (existente) {
+            existente.qtd = (existente.qtd || 1) + 1;
+        } else {
+            carrinho.push({ procod, nome, preco, und, img, qtd: 1 });
+        }
+        localStorage.setItem('carrinho', JSON.stringify(carrinho));
+        atualizarCarrinhoHeader();
+    }
+});
+
+// Atualiza o header do carrinho
+function atualizarCarrinhoHeader() {
+    let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
+    let shoppingCart = document.querySelector('.shopping-cart');
+    if (!shoppingCart) return;
+    shoppingCart.innerHTML = '';
+    let total = 0;
+        carrinho.slice(0, 3).forEach(item => {
+            let precoNum = parseFloat(item.preco.replace(',', '.'));
+            let subtotal = precoNum * (item.qtd || 1);
+            total += subtotal;
+            shoppingCart.innerHTML += `
+                <div class="cart-item">
+                    <i class="fas fa-trash" data-procod="${item.procod}"></i>
+                    <img src="${item.img}" alt="${item.nome}">
+                    <div class="content">
+                        <h3>${item.nome}</h3>
+                        <span class="price">R$ ${precoNum.toFixed(2)} ${item.und ? '| ' : ''}</span>
+                        <span class="qtd">Qtde: ${item.qtd} ${item.und || ''}</span>
+                    </div>
+                </div>
+            `;
+    });
+        let totalQtd = carrinho.reduce((acc, item) => acc + (item.qtd || 1), 0);
+        shoppingCart.innerHTML += `<div class=\"ver-mais\"><a href=\"carrinho.html\" class=\"btn-ver-mais\">VER CARRINHO (${totalQtd})</a></div>`;
+    shoppingCart.innerHTML += `<div class="total"><h3>Total:<span class="price"> R$ ${total.toFixed(2)}</span></h3></div>`;
+    shoppingCart.innerHTML += `<a href="#" class="btn">Finalizar Compra</a>`;
+}
+
+// Atualiza ao abrir o carrinho
+document.querySelector('#cart-btn').addEventListener('click', atualizarCarrinhoHeader);
+
+// Remove item do carrinho
+document.querySelector('.shopping-cart').addEventListener('click', function(e) {
+    if (e.target.classList.contains('fa-trash')) {
+        let procod = e.target.getAttribute('data-procod');
+        let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
+        let idx = carrinho.findIndex(item => item.procod === procod);
+        if (idx !== -1) {
+            if (carrinho[idx].qtd > 1) {
+                carrinho[idx].qtd -= 1;
+            } else {
+                carrinho.splice(idx, 1);
+            }
+        }
+        localStorage.setItem('carrinho', JSON.stringify(carrinho));
+        atualizarCarrinhoHeader();
+    }
+});
+</script>
 </body>
 
 </html>

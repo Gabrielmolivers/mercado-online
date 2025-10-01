@@ -12,7 +12,14 @@ function buscarProdutos(offset = 0, limit = 20) {
     const loader = document.getElementById('loader');
     if (loader) loader.style.display = 'flex';
     const unique = Date.now();
-    return fetch(`/api/produtos?offset=0&limit=10000&_=${unique}`, {
+    // Verifica se há termo de busca na URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const termoBusca = urlParams.get('search');
+    let url = `/api/produtos?offset=0&limit=10000&_=${unique}`;
+    if (termoBusca) {
+        url += `&search=${encodeURIComponent(termoBusca)}`;
+    }
+    return fetch(url, {
         headers: {
             'Cache-Control': 'no-cache',
             'Pragma': 'no-cache',
@@ -90,11 +97,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Busca automática ao carregar se houver termo na URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const termoBusca = urlParams.get('search');
+    if (termoBusca) {
+        buscarProdutos().then(produtos => {
+            produtosOrdenados = produtos;
+            const termo = termoBusca.trim().toLowerCase();
+            const filtrados = produtosOrdenados.filter(prod =>
+                prod.nome && prod.nome.toLowerCase().includes(termo)
+            );
+            exibirProdutos(filtrados.slice(0, itensPorPagina));
+            const searchBox = document.getElementById('search-box');
+            if (searchBox) searchBox.value = termoBusca;
+        });
+    }
+    // Mantém funcionalidade de busca manual
+    const searchForm = document.querySelector('.search-form');
+    const searchBox = document.getElementById('search-box');
+    if (searchForm && searchBox) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const termo = searchBox.value.trim().toLowerCase();
+            const filtrados = produtosOrdenados.filter(prod =>
+                prod.nome && prod.nome.toLowerCase().includes(termo)
+            );
+            exibirProdutos(filtrados.slice(0, itensPorPagina));
+        });
+    }
+
     // Polling a cada 5 minutos para atualizar os produtos
     setInterval(() => {
         // Sempre faz nova conexão e importa os produtos
         atualizarProdutosOrdenados(selectOrdenar ? selectOrdenar.value : 'padrao');
     }, 300000); // 300000 ms = 5 minutos
+
+        
 });
 
 

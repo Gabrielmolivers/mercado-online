@@ -1,4 +1,3 @@
-
 // Validação de senha ao sair do campo
 const senhaInput = document.querySelector('input[name="senha"]');
 const confirmarSenhaInput = document.getElementById('confirmarSenha');
@@ -169,4 +168,53 @@ document.addEventListener('DOMContentLoaded', function () {
                 btnCadastrar.disabled = false;
             });
     });
+});
+function renderCarrinho() {
+    const carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+    const carrinhoContainer = document.querySelector('.shopping-cart');
+    if (!carrinhoContainer) return;
+    carrinhoContainer.innerHTML = '';
+    let total = 0;
+    carrinho.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+            <i class="fas fa-trash" data-idx="${idx}"></i>
+            <img src="${item.imagem || 'image/SEM-IMAGEM.png'}" alt="${item.nome}">
+            <div class="content">
+                <h3>${item.nome}</h3>
+                <span class="price">R$ ${Number(item.preco).toFixed(2)} ${item.und ? '| ' + item.und : ''}</span>
+                <span class="qtd">Qtde: ${item.qtd || 1} ${item.und || ''}</span>
+            </div>
+        `;
+        carrinhoContainer.appendChild(div);
+        total += Number(item.preco) * (item.qtd || 1);
+    });
+    const totalDiv = document.createElement('div');
+    totalDiv.className = 'total';
+    totalDiv.innerHTML = `<h3>Total:<span class="price"> R$ ${total.toFixed(2)}</span></h3>`;
+    carrinhoContainer.appendChild(totalDiv);
+    const btn = document.createElement('a');
+    btn.href = '#';
+    btn.className = 'btn';
+    btn.textContent = 'Finalizar Compra';
+    carrinhoContainer.appendChild(btn);
+
+    // Remover produto do carrinho (diminui quantidade)
+    carrinhoContainer.querySelectorAll('.fa-trash').forEach(trash => {
+        trash.onclick = function() {
+            const idx = parseInt(this.getAttribute('data-idx'));
+            if (carrinho[idx].qtd && carrinho[idx].qtd > 1) {
+                carrinho[idx].qtd--;
+            } else {
+                carrinho.splice(idx, 1);
+            }
+            localStorage.setItem('carrinho', JSON.stringify(carrinho));
+            renderCarrinho();
+        };
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    renderCarrinho();
 });

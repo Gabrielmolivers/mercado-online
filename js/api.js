@@ -12,9 +12,14 @@ const connection = require('./connection');
 router.get('/produtos', (req, res) => {
   const offset = parseInt(req.query.offset) || 0;
   const limit = parseInt(req.query.limit) || 20;
+  const search = (req.query.search || '').toLowerCase();
   const now = Date.now();
   if (produtosCache && (now - cacheTimestamp < CACHE_TTL)) {
-    const paginados = produtosCache.slice(offset, offset + limit);
+    let filtrados = produtosCache;
+    if (search) {
+      filtrados = produtosCache.filter(prod => prod.nome && prod.nome.toLowerCase().includes(search));
+    }
+    const paginados = filtrados.slice(offset, offset + limit);
     return res.json({ success: true, produtos: paginados });
   }
   let respostaEnviada = false;
@@ -26,7 +31,11 @@ router.get('/produtos', (req, res) => {
       }
   produtosCache = produtosProcessados || [];
   cacheTimestamp = Date.now();
-  const paginados = produtosCache.slice(offset, offset + limit);
+  let filtrados = produtosCache;
+  if (search) {
+    filtrados = produtosCache.filter(prod => prod.nome && prod.nome.toLowerCase().includes(search));
+  }
+  const paginados = filtrados.slice(offset, offset + limit);
   res.json({ success: true, produtos: paginados });
     }
   }

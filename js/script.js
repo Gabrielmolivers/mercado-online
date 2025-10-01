@@ -1,11 +1,32 @@
-let searchForm = document.querySelector('.search-form');
+const searchForm = document.querySelector('.search-form');
 
 document.querySelector('#search-btn').onclick = () => {
-    searchForm.classList.toggle('active');
+    searchForm.classList.add('active');
     shoppingCart.classList.remove('active');
     loginForm.classList.remove('active');
     navbar.classList.remove('active');
+    const searchBox = document.getElementById('search-box');
+    if (searchBox) {
+        searchBox.focus();
+    }
 };
+// Redireciona ao submeter o formulário de busca
+if (searchForm) {
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const searchBox = document.getElementById('search-box');
+        if (searchBox) {
+            const termo = searchBox.value.trim();
+            if (termo) {
+                window.location.href = `produtos.html?search=${encodeURIComponent(termo)}`;
+                searchBox.value = '';
+            } else {
+                searchBox.value = '';
+                searchBox.focus();
+            }
+        }
+    });
+}
 
 let shoppingCart = document.querySelector('.shopping-cart');
 
