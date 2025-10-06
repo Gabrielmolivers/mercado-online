@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/svg+xml" href="image/favicon.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <!-- Swiper CSS -->
@@ -41,38 +42,7 @@
         </form>
 
         <div class="shopping-cart">
-            <div class="cart-item">
-                <i class="fas fa-trash"></i>
-                <img src="image/produto1.png" alt="">
-                <div class="content">
-                    <h3>Melancia</h3>
-                    <span class="price">R$ 5,99 kg | </span>
-                    <span class="qtd">Qtde: 2,00 kg</span>
-                </div>
-            </div>
-            <div class="cart-item">
-                <i class="fas fa-trash"></i>
-                <img src="image/produto2.png" alt="">
-                <div class="content">
-                    <h3>Picanha</h3>
-                    <span class="price">R$ 45,99 kg | </span>
-                    <span class="qtd">Qtde: 1,00 kg</span>
-                </div>
-            </div>
-
-            <div class="cart-item">
-                <i class="fas fa-trash"></i>
-                <img src="image/produto3.png" alt="">
-                <div class="content">
-                    <h3>Coca-cola 2L</h3>
-                    <span class="price">R$ 9,99 und | </span>
-                    <span class="qtd">Qtde: 1 und</span>
-                </div>
-            </div>
-            <div class="total">
-                <h3>Total:<span class="price"> R$ 67,96</span></h3>
-
-            </div>
+            
             <a href="#" class="btn">Finalizar Compra</a>
         </div>
 
@@ -195,6 +165,11 @@ fetch('/api/produtos?offset=0&limit=20')
                 <div class="swiper-slide box" data-procod="${prod.procod}" style="background: #fff; box-shadow: 0 .1rem 1rem rgb(124, 124, 124); border-radius: .5rem; text-align: center; display: block; height: 25rem; width: 20rem; position: relative;">
                     ${prod.imagemTipo && prod.imagem ? `<img src="data:image/${prod.imagemTipo};base64,${prod.imagem}" alt="${prod.nome}" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">` : `<img src="image/SEM-IMAGEM.png" alt="Sem imagem" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">`}
                     <h1 style="font-size: 1.5rem; color: rgb(22, 87, 207);">${prod.nome}</h1>
+                    <div class="qty-selector" style="margin: 0.5rem 0; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                        <button class="qty-minus" type="button">-</button>
+                        <input type="number" class="qty-input" min="1" value="1" style="width: 40px; text-align: center; font-size: 1.2rem;">
+                        <button class="qty-plus" type="button">+</button>
+                    </div>
                     <div class="box-footer">
                         <div style="display: flex; align-items: baseline;">
                             <span class="price">R$ ${(Number(prod.preco)).toFixed(2)}</span>
@@ -227,6 +202,49 @@ fetch('/api/produtos?offset=0&limit=20')
                     });
                 }, 100);
             }
+            // Adiciona eventos de quantidade e carrinho igual produtos.js
+            lista.querySelectorAll('.box').forEach(box => {
+                const minus = box.querySelector('.qty-minus');
+                const plus = box.querySelector('.qty-plus');
+                const input = box.querySelector('.qty-input');
+                minus.onclick = () => {
+                    let val = parseInt(input.value) || 1;
+                    if (val > 1) input.value = val - 1;
+                };
+                plus.onclick = () => {
+                    let val = parseInt(input.value) || 1;
+                    input.value = val + 1;
+                };
+                input.oninput = () => {
+                    if (input.value < 1) input.value = 1;
+                };
+                box.querySelector('.add-carrinho-btn').onclick = () => {
+                    const prodcod = box.getAttribute('data-procod');
+                    const prod = data.produtos.find(p => p.procod == prodcod);
+                    const qtd = parseInt(input.value) || 1;
+                    adicionarAoCarrinho(prod, qtd);
+                    // Mensagem de confirmação com fade out
+                    let msg = document.createElement('div');
+                    msg.textContent = 'ADICIONADO COM SUCESSO';
+                    msg.style.position = 'fixed';
+                    msg.style.top = '20px';
+                    msg.style.left = '50%';
+                    msg.style.transform = 'translateX(-50%)';
+                    msg.style.background = '#1657cf';
+                    msg.style.color = '#fff';
+                    msg.style.padding = '1rem 2rem';
+                    msg.style.borderRadius = '2rem';
+                    msg.style.fontSize = '1.4rem';
+                    msg.style.fontWeight = 'bold';
+                    msg.style.zIndex = '9999';
+                    msg.style.transition = 'opacity 0.5s';
+                    document.body.appendChild(msg);
+                    setTimeout(() => {
+                        msg.style.opacity = '0';
+                        setTimeout(() => { msg.remove(); }, 500);
+                    }, 1000);
+                };
+            });
         } else {
             lista.innerHTML = '<div>Nenhum produto encontrado.</div>';
         }
@@ -234,6 +252,21 @@ fetch('/api/produtos?offset=0&limit=20')
     .catch(() => {
         document.getElementById('destaque-lista').innerHTML = '<div>Erro ao buscar produtos.</div>';
     });
+
+// Função igual produtos.js
+function adicionarAoCarrinho(produto, qtd = 1) {
+    let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+    const idx = carrinho.findIndex(item => item.procod === produto.procod);
+    if (idx > -1) {
+        carrinho[idx].qtd += qtd;
+    } else {
+        const novoProduto = { ...produto, qtd };
+        carrinho.push(novoProduto);
+    }
+    localStorage.setItem('carrinho', JSON.stringify(carrinho));
+    if (typeof updateCartBadge === 'function') updateCartBadge();
+    window.dispatchEvent(new Event('storage'));
+}
 </script>
             <!--SETAS-->
             <div class="swiper-button-next"></div>
@@ -249,31 +282,14 @@ fetch('/api/produtos?offset=0&limit=20')
 
     <script src="js/script.js"></script>
 
-<script>
-// Carrinho: Adiciona evento aos botões de adicionar ao carrinho
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('add-carrinho-btn') || (e.target.closest('.add-carrinho-btn'))) {
-        let btn = e.target.classList.contains('add-carrinho-btn') ? e.target : e.target.closest('.add-carrinho-btn');
-        let box = btn.closest('.box');
-        if (!box) return;
-        let procod = box.getAttribute('data-procod');
-        let nome = box.querySelector('h1')?.textContent;
-        let preco = box.querySelector('.price')?.textContent.replace('R$', '').replace(/\/.*/, '').trim();
-        let und = box.querySelector('.und')?.textContent.replace('/', '').trim();
-        let img = box.querySelector('img')?.getAttribute('src');
 
-        let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
-        let existente = carrinho.find(p => p.procod === procod);
-        if (existente) {
-            existente.qtd = (existente.qtd || 1) + 1;
-        } else {
-            carrinho.push({ procod, nome, preco, und, img, qtd: 1 });
-        }
-        localStorage.setItem('carrinho', JSON.stringify(carrinho));
+<script>
+// Atualiza o header do carrinho ao abrir a página
+window.addEventListener('DOMContentLoaded', function() {
+    if (typeof atualizarCarrinhoHeader === 'function') {
         atualizarCarrinhoHeader();
     }
 });
-
 // Atualiza o header do carrinho
 function atualizarCarrinhoHeader() {
     let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
@@ -281,30 +297,75 @@ function atualizarCarrinhoHeader() {
     if (!shoppingCart) return;
     shoppingCart.innerHTML = '';
     let total = 0;
-        carrinho.slice(0, 3).forEach(item => {
-            let precoNum = parseFloat(item.preco.replace(',', '.'));
-            let subtotal = precoNum * (item.qtd || 1);
-            total += subtotal;
-            shoppingCart.innerHTML += `
-                <div class="cart-item">
-                    <i class="fas fa-trash" data-procod="${item.procod}"></i>
-                    <img src="${item.img}" alt="${item.nome}">
-                    <div class="content">
-                        <h3>${item.nome}</h3>
-                        <span class="price">R$ ${precoNum.toFixed(2)} ${item.und ? '| ' : ''}</span>
-                        <span class="qtd">Qtde: ${item.qtd} ${item.und || ''}</span>
+    carrinho.slice(0, 3).forEach((item, idx) => {
+        let imgSrc = item.img || item.imagem || 'image/SEM-IMAGEM.png';
+        let precoNum = typeof item.preco === 'string' ? parseFloat(item.preco.replace(',', '.')) : Number(item.preco);
+        let subtotal = precoNum * (item.qtd || 1);
+        total += subtotal;
+        shoppingCart.innerHTML += `
+            <div class="cart-item">
+                <i class="fas fa-trash" data-procod="${item.procod}"></i>
+                <img src="${imgSrc}" alt="${item.nome}">
+                <div class="content">
+                    <h3>${item.nome}</h3>
+                    <div class="qty-selector" style="margin: 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <button class="qty-minus" type="button" data-idx="${idx}">-</button>
+                        <input type="number" class="qty-input" min="1" value="${item.qtd ? item.qtd : 1}" style="width: 40px; text-align: center; font-size: 1.2rem;">
+                        <button class="qty-plus" type="button" data-idx="${idx}">+</button>
                     </div>
+                    <span class="price">R$ ${precoNum.toFixed(2)} ${item.und ? '| ' + item.und : ''}</span>
                 </div>
-            `;
+            </div>
+        `;
     });
-        let totalQtd = carrinho.reduce((acc, item) => acc + (item.qtd || 1), 0);
-        shoppingCart.innerHTML += `<div class=\"ver-mais\"><a href=\"carrinho.html\" class=\"btn-ver-mais\">VER CARRINHO (${totalQtd})</a></div>`;
+    let totalQtd = carrinho.reduce((acc, item) => acc + (item.qtd || 1), 0);
+    shoppingCart.innerHTML += `<div class="ver-mais"><a href="carrinho.html" class="btn-ver-mais">VER CARRINHO (${totalQtd})</a></div>`;
     shoppingCart.innerHTML += `<div class="total"><h3>Total:<span class="price"> R$ ${total.toFixed(2)}</span></h3></div>`;
     shoppingCart.innerHTML += `<a href="#" class="btn">Finalizar Compra</a>`;
+
+    // Eventos de quantidade no header
+    shoppingCart.querySelectorAll('.cart-item').forEach((div, idx) => {
+        const minus = div.querySelector('.qty-minus');
+        const plus = div.querySelector('.qty-plus');
+        const input = div.querySelector('.qty-input');
+        minus.onclick = () => {
+            let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+            if (carrinho[idx].qtd > 1) {
+                carrinho[idx].qtd -= 1;
+                localStorage.setItem('carrinho', JSON.stringify(carrinho));
+                atualizarCarrinhoHeader();
+                if (typeof updateCartBadge === 'function') updateCartBadge();
+                window.dispatchEvent(new Event('storage'));
+            }
+        };
+        plus.onclick = () => {
+            let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+            carrinho[idx].qtd += 1;
+            localStorage.setItem('carrinho', JSON.stringify(carrinho));
+            atualizarCarrinhoHeader();
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+            window.dispatchEvent(new Event('storage'));
+        };
+        input.oninput = () => {
+            let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+            let val = parseInt(input.value) || 1;
+            if (val < 1) val = 1;
+            carrinho[idx].qtd = val;
+            localStorage.setItem('carrinho', JSON.stringify(carrinho));
+            atualizarCarrinhoHeader();
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+            window.dispatchEvent(new Event('storage'));
+        };
+    });
 }
 
 // Atualiza ao abrir o carrinho
 document.querySelector('#cart-btn').addEventListener('click', atualizarCarrinhoHeader);
+window.addEventListener('storage', function() {
+    if (typeof atualizarCarrinhoHeader === 'function') {
+        atualizarCarrinhoHeader();
+    }
+});
 
 // Remove item do carrinho
 document.querySelector('.shopping-cart').addEventListener('click', function(e) {
@@ -313,11 +374,7 @@ document.querySelector('.shopping-cart').addEventListener('click', function(e) {
         let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
         let idx = carrinho.findIndex(item => item.procod === procod);
         if (idx !== -1) {
-            if (carrinho[idx].qtd > 1) {
-                carrinho[idx].qtd -= 1;
-            } else {
-                carrinho.splice(idx, 1);
-            }
+            carrinho.splice(idx, 1);
         }
         localStorage.setItem('carrinho', JSON.stringify(carrinho));
         atualizarCarrinhoHeader();

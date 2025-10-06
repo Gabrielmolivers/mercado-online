@@ -53,6 +53,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Produtos - Mercado Online</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/svg+xml" href="image/favicon.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
@@ -81,38 +82,7 @@
         </form>
 
         <div class="shopping-cart">
-            <div class="cart-item">
-                <i class="fas fa-trash"></i>
-                <img src="image/produto1.png" alt="">
-                <div class="content">
-                    <h3>Melancia</h3>
-                    <span class="price">R$ 5,99 kg | </span>
-                    <span class="qtd">Qtde: 2,00 kg</span>
-                </div>
-            </div>
-            <div class="cart-item">
-                <i class="fas fa-trash"></i>
-                <img src="image/produto2.png" alt="">
-                <div class="content">
-                    <h3>Picanha</h3>
-                    <span class="price">R$ 45,99 kg | </span>
-                    <span class="qtd">Qtde: 1,00 kg</span>
-                </div>
-            </div>
-
-            <div class="cart-item">
-                <i class="fas fa-trash"></i>
-                <img src="image/produto3.png" alt="">
-                <div class="content">
-                    <h3>Coca-cola 2L</h3>
-                    <span class="price">R$ 9,99 und | </span>
-                    <span class="qtd">Qtde: 1 und</span>
-                </div>
-            </div>
-            <div class="total">
-                <h3>Total:<span class="price"> R$ 67,96</span></h3>
-
-            </div>
+            
             <a href="#" class="btn">Finalizar Compra</a>
         </div>
 
@@ -151,76 +121,38 @@
 
 <script>
 // Carrinho: Adiciona evento aos botões de adicionar ao carrinho
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('add-carrinho-btn') || (e.target.closest('.add-carrinho-btn'))) {
-        let btn = e.target.classList.contains('add-carrinho-btn') ? e.target : e.target.closest('.add-carrinho-btn');
-        let box = btn.closest('.box');
-        if (!box) return;
-        let procod = box.getAttribute('data-procod');
-        let nome = box.querySelector('h1')?.textContent;
-        let preco = box.querySelector('.price')?.textContent.replace('R$', '').replace(/\/.*/, '').trim();
-        let und = box.querySelector('.und')?.textContent.replace('/', '').trim();
-        let img = box.querySelector('img')?.getAttribute('src');
+// Removido o evento global que sempre soma +1 ao carrinho
+// O controle de quantidade agora é feito pelo produtos.js
 
-        let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
-        let existente = carrinho.find(p => p.procod === procod);
-        if (existente) {
-            existente.qtd = (existente.qtd || 1) + 1;
-        } else {
-            carrinho.push({ procod, nome, preco, und, img, qtd: 1 });
-        }
-        localStorage.setItem('carrinho', JSON.stringify(carrinho));
+// Atualiza o header do carrinho ao adicionar produto
+window.addEventListener('storage', function() {
+    if (typeof atualizarCarrinhoHeader === 'function') {
         atualizarCarrinhoHeader();
     }
 });
 
-// Atualiza o header do carrinho
-function atualizarCarrinhoHeader() {
-    let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
-    let shoppingCart = document.querySelector('.shopping-cart');
-    if (!shoppingCart) return;
-    shoppingCart.innerHTML = '';
-    let total = 0;
-        carrinho.slice(0, 3).forEach(item => {
-            let precoNum = parseFloat(item.preco.replace(',', '.'));
-            let subtotal = precoNum * (item.qtd || 1);
-            total += subtotal;
-            shoppingCart.innerHTML += `
-                <div class="cart-item">
-                    <i class="fas fa-trash" data-procod="${item.procod}"></i>
-                    <img src="${item.img}" alt="${item.nome}">
-                    <div class="content">
-                        <h3>${item.nome}</h3>
-                        <span class="price">R$ ${precoNum.toFixed(2)} ${item.und ? '| ' : ''}</span>
-                        <span class="qtd">Qtde: ${item.qtd} ${item.und || ''}</span>
-                    </div>
-                </div>
-            `;
-    });
-        let totalQtd = carrinho.reduce((acc, item) => acc + (item.qtd || 1), 0);
-        shoppingCart.innerHTML += `<div class=\"ver-mais\"><a href=\"carrinho.html\" class=\"btn-ver-mais\">VER CARRINHO (${totalQtd})</a></div>`;
-    shoppingCart.innerHTML += `<div class="total"><h3>Total:<span class="price"> R$ ${total.toFixed(2)}</span></h3></div>`;
-    shoppingCart.innerHTML += `<a href="#" class="btn">Finalizar Compra</a>`;
-}
+// ...existing code...
 
-// Atualiza ao abrir o carrinho
-document.querySelector('#cart-btn').addEventListener('click', atualizarCarrinhoHeader);
+// Atualiza o header do carrinho ao abrir
+document.querySelector('#cart-btn').addEventListener('click', function() {
+    if (typeof atualizarCarrinhoHeader === 'function') {
+        atualizarCarrinhoHeader();
+    }
+});
 
-// Remove item do carrinho
+// Remove item do carrinho (igual ao index.html)
 document.querySelector('.shopping-cart').addEventListener('click', function(e) {
     if (e.target.classList.contains('fa-trash')) {
         let procod = e.target.getAttribute('data-procod');
         let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
         let idx = carrinho.findIndex(item => item.procod === procod);
         if (idx !== -1) {
-            if (carrinho[idx].qtd > 1) {
-                carrinho[idx].qtd -= 1;
-            } else {
-                carrinho.splice(idx, 1);
-            }
+            carrinho.splice(idx, 1);
+            localStorage.setItem('carrinho', JSON.stringify(carrinho));
+            atualizarCarrinhoHeader();
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+            window.dispatchEvent(new Event('storage'));
         }
-        localStorage.setItem('carrinho', JSON.stringify(carrinho));
-        atualizarCarrinhoHeader();
     }
 });
 </script>
@@ -256,7 +188,6 @@ document.querySelector('.shopping-cart').addEventListener('click', function(e) {
                     if (data.success && data.produtos.length > 0) {
                         renderProdutos(data.produtos);
                         offset += limit;
-                        // btnMais removido, não faz mais parte da interface
                         // btnMais removido, não faz mais parte da interface
                     } else {
                         if (offset === 0) {

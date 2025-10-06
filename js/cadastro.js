@@ -169,6 +169,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     });
 });
+// Adiciona campo de seleção de quantidade nos produtos do carrinho
 function renderCarrinho() {
     const carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
     const carrinhoContainer = document.querySelector('.shopping-cart');
@@ -183,8 +184,12 @@ function renderCarrinho() {
             <img src="${item.imagem || 'image/SEM-IMAGEM.png'}" alt="${item.nome}">
             <div class="content">
                 <h3>${item.nome}</h3>
+                <div class="qty-selector" style="margin: 0.5rem 0; display: flex; justify-content: start; align-items: center; gap: 0.5rem;">
+                    <button class="qty-minus" type="button">-</button>
+                    <input type="number" class="qty-input" min="1" value="${item.qtd || 1}" style="width: 40px; text-align: center; font-size: 1.2rem;">
+                    <button class="qty-plus" type="button">+</button>
+                </div>
                 <span class="price">R$ ${Number(item.preco).toFixed(2)} ${item.und ? '| ' + item.und : ''}</span>
-                <span class="qtd">Qtde: ${item.qtd || 1} ${item.und || ''}</span>
             </div>
         `;
         carrinhoContainer.appendChild(div);
@@ -199,22 +204,52 @@ function renderCarrinho() {
     btn.className = 'btn';
     btn.textContent = 'Finalizar Compra';
     carrinhoContainer.appendChild(btn);
-
-    // Remover produto do carrinho (diminui quantidade)
+    // Botões de quantidade
+    carrinhoContainer.querySelectorAll('.cart-item').forEach((div, idx) => {
+        const minus = div.querySelector('.qty-minus');
+        const plus = div.querySelector('.qty-plus');
+        const input = div.querySelector('.qty-input');
+        minus.onclick = () => {
+            let val = parseInt(input.value) || 1;
+            if (val > 1) input.value = val - 1;
+            carrinho[idx].qtd = parseInt(input.value);
+            localStorage.setItem('carrinho', JSON.stringify(carrinho));
+            renderCarrinho();
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+            window.dispatchEvent(new Event('storage'));
+        };
+        plus.onclick = () => {
+            let val = parseInt(input.value) || 1;
+            input.value = val + 1;
+            carrinho[idx].qtd = parseInt(input.value);
+            localStorage.setItem('carrinho', JSON.stringify(carrinho));
+            renderCarrinho();
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+            window.dispatchEvent(new Event('storage'));
+        };
+        input.oninput = () => {
+            if (input.value < 1) input.value = 1;
+            carrinho[idx].qtd = parseInt(input.value);
+            localStorage.setItem('carrinho', JSON.stringify(carrinho));
+            renderCarrinho();
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+            window.dispatchEvent(new Event('storage'));
+        };
+    });
+    // Remover produto do carrinho (remove completamente)
     carrinhoContainer.querySelectorAll('.fa-trash').forEach(trash => {
         trash.onclick = function() {
             const idx = parseInt(this.getAttribute('data-idx'));
-            if (carrinho[idx].qtd && carrinho[idx].qtd > 1) {
-                carrinho[idx].qtd--;
-            } else {
+            if (idx !== -1) {
                 carrinho.splice(idx, 1);
+                localStorage.setItem('carrinho', JSON.stringify(carrinho));
+                renderCarrinho();
+                if (typeof updateCartBadge === 'function') updateCartBadge();
+                window.dispatchEvent(new Event('storage'));
             }
-            localStorage.setItem('carrinho', JSON.stringify(carrinho));
-            renderCarrinho();
         };
     });
 }
-
 document.addEventListener('DOMContentLoaded', function () {
     renderCarrinho();
 });

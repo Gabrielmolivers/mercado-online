@@ -53,12 +53,60 @@ function exibirProdutos(lista) {
         box.innerHTML = `
             ${prod.imagemTipo && prod.imagem ? `<img src="data:image/${prod.imagemTipo};base64,${prod.imagem}" alt="${prod.nome}" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">` : `<img src="image/SEM-IMAGEM.png" alt="Sem imagem" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">`}
             <h1 style="font-size: 1.5rem; color: rgb(22, 87, 207);">${prod.nome}</h1>
+            <div class="qty-selector" style="margin: 0.5rem 0; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                <button class="qty-minus" type="button">-</button>
+                <input type="number" class="qty-input" min="1" value="1" style="width: 40px; text-align: center; font-size: 1.2rem;">
+                <button class="qty-plus" type="button">+</button>
+            </div>
             <div class="box-footer">
                 <div class="price">R$ ${precoFormatado} <span class="und">/${prod.und}</span></div>
                 <button class="add-carrinho-btn"><i class="fas fa-shopping-cart"></i></button>
             </div>
         `;
         container.appendChild(box);
+    });
+    // Adiciona eventos de quantidade e carrinho
+    container.querySelectorAll('.box').forEach(box => {
+        const minus = box.querySelector('.qty-minus');
+        const plus = box.querySelector('.qty-plus');
+        const input = box.querySelector('.qty-input');
+        minus.onclick = () => {
+            let val = parseInt(input.value) || 1;
+            if (val > 1) input.value = val - 1;
+        };
+        plus.onclick = () => {
+            let val = parseInt(input.value) || 1;
+            input.value = val + 1;
+        };
+        input.oninput = () => {
+            if (input.value < 1) input.value = 1;
+        };
+        box.querySelector('.add-carrinho-btn').onclick = () => {
+            const prodcod = box.getAttribute('data-procod');
+            const prod = lista.find(p => p.procod == prodcod);
+            const qtd = parseInt(input.value) || 1;
+            adicionarAoCarrinho(prod, qtd);
+            // Mensagem de confirmação com fade out
+            let msg = document.createElement('div');
+            msg.textContent = 'ADICIONADO COM SUCESSO';
+            msg.style.position = 'fixed';
+            msg.style.top = '20px';
+            msg.style.left = '50%';
+            msg.style.transform = 'translateX(-50%)';
+            msg.style.background = '#1657cf';
+            msg.style.color = '#fff';
+            msg.style.padding = '1rem 2rem';
+            msg.style.borderRadius = '2rem';
+            msg.style.fontSize = '1.4rem';
+            msg.style.fontWeight = 'bold';
+            msg.style.zIndex = '9999';
+            msg.style.transition = 'opacity 0.5s';
+            document.body.appendChild(msg);
+            setTimeout(() => {
+                msg.style.opacity = '0';
+                setTimeout(() => { msg.remove(); }, 500);
+            }, 1000);
+        };
     });
     atualizarPaginacao();
 }
@@ -197,3 +245,22 @@ function atualizarPaginacao() {
     };
     paginacao.appendChild(btnProxima);
 }
+
+// Adiciona ao carrinho
+function adicionarAoCarrinho(produto, qtd = 1) {
+    let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+    const idx = carrinho.findIndex(item => item.procod === produto.procod);
+    if (idx > -1) {
+        carrinho[idx].qtd += qtd; // Soma a quantidade selecionada ao que já existe
+    } else {
+        // Cria um novo objeto para evitar mutação do produto original
+        const novoProduto = { ...produto, qtd };
+        carrinho.push(novoProduto);
+    }
+    localStorage.setItem('carrinho', JSON.stringify(carrinho));
+    if (typeof updateCartBadge === 'function') updateCartBadge();
+    window.dispatchEvent(new Event('storage'));
+}
+
+// Atualiza badge do carrinho ao modificar carrinho
+if (typeof updateCartBadge === 'function') updateCartBadge();

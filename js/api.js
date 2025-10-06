@@ -224,4 +224,60 @@ router.get('/conectar', (req, res) => {
 });
 
 
+
+// Rota para finalizar compra
+router.post('/finalizar-compra', express.json(), (req, res) => {
+  const itens = req.body.itens;
+  if (!Array.isArray(itens) || itens.length === 0) {
+    return res.status(400).json({ success: false, error: 'Carrinho vazio.' });
+  }
+  connection.conectar((err, db) => {
+    if (err) {
+      return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco.' });
+    }
+    // Cria novo pedido
+  db.query('SELECT MAX(IDPEDIDO) AS MAX_ID FROM PEDIDOS', [], (err, result) => {
+      if (err) {
+        db.detach();
+        return res.status(500).json({ success: false, error: 'Erro ao buscar último IDPED.' });
+      }
+      const novoId = (result[0].MAX_ID || 0) + 1;
+      const data = new Date();
+      const dtped = `${data.getFullYear()}-${String(data.getMonth()+1).padStart(2,'0')}-${String(data.getDate()).padStart(2,'0')}`;
+      db.query(
+        'INSERT INTO PEDIDOS (IDPEDIDO, DTPEDIDO) VALUES (?, ?)',
+        [novoId, dtped],
+        (err) => {
+          if (err) {
+            db.detach();
+            return res.status(500).json({ success: false, error: 'Erro ao inserir pedido.' });
+          }
+          // Insere itens
+          let pendentes = itens.length;
+          let erroDetectado = false;
+          itens.forEach(item => {
+            db.query(
+              'INSERT INTO PEDIDOS_ITENS (IDPEDIDO, PROCOD, QTDE, VLRUNI, VLRTOT) VALUES (?, ?, ?, ?, ?)',
+              [novoId, item.procod, item.qtd || 1, item.preco, (item.preco * (item.qtd || 1))],
+              (err) => {
+                if (err && !erroDetectado) {
+                  erroDetectado = true;
+                  console.error('Erro ao inserir item do pedido:', err, item);
+                  db.detach(() => {});
+                  return res.status(500).json({ success: false, error: 'Erro ao inserir item do pedido: ' + err.message });
+                }
+                pendentes--;
+                if (pendentes === 0 && !erroDetectado) {
+                  db.detach(() => {});
+                  res.json({ success: true, idped: novoId });
+                }
+              }
+            );
+          });
+        }
+      );
+    });
+  });
+});
+
 module.exports = router;

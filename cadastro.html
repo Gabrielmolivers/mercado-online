@@ -4,76 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro - Mercado Online</title>
+    <link rel="icon" type="image/svg+xml" href="image/favicon.svg">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
         <header class="header">
+
     <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
-        <nav class="navbar">
-            <a href="maisvendidos">Mais Vendidos</a>
-            <a href="ofertas">Ofertas</a>
-            <a href="produtos.html">Produtos</a>
-            <a href="departamentos">Departamentos</a>
-            <a href="contato">Contato</a>
-        </nav>
+    <nav class="navbar">
+        <a href="maisvendidos" style="text-decoration: line-through;">Mais Vendidos</a>
+        <a href="ofertas" style="text-decoration: line-through;">Ofertas</a>
+        <a href="produtos.html">Produtos</a>
+        <a href="departamentos" style="text-decoration: line-through;">Departamentos</a>
+        <a href="contato" style="text-decoration: line-through;">Contato</a>
+    </nav>
 
-        <div class="icons">
-            <div id="search-btn" class="fas fa-search"></div>
-            <div id="cart-btn" class="fas fa-shopping-cart"></div>
-            <div id="login-btn" class="fas fa-user"></div>
-            <div id="menu-btn" class="fas fa-bars"></div>
+    <div class="icons">
+        <div id="search-btn" class="fas fa-search"></div>
+        <div id="cart-btn" class="fas fa-shopping-cart"></div>
+        <div id="login-btn" class="fas fa-user"></div>
+        <div id="menu-btn" class="fas fa-bars"></div>
+    </div>
 
-        </div>
+    <form class="search-form">
+        <input type="text" id="search-box" placeholder="Buscar produtos...">
+        <label for="search-box" class="fas fa-search"></label>
+    </form>
 
-        <form class="search-form">
-            <input type="text" id="search-box" placeholder="Buscar produtos...">
-            <label for="search-box" class="fas fa-search"></label>
-        </form>
+    <div class="shopping-cart">
+        <a href="#" class="btn">Finalizar Compra</a>
+    </div>
 
-        <div class="shopping-cart">
-        <div class="shopping-cart">
-                <i class="fas fa-trash"></i>
-                <img src="image/produto1.png" alt="">
-                <div class="content">
-                    <h3>Melancia</h3>
-                    <span class="price">R$ 5,99 kg | </span>
-                    <span class="qtd">Qtde: 2,00 kg</span>
-                </div>
-            </div>
-            <div class="cart-item">
-                <i class="fas fa-trash"></i>
-                <img src="image/produto2.png" alt="">
-                <div class="content">
-                    <h3>Picanha</h3>
-                    <span class="price">R$ 45,99 kg | </span>
-                    <span class="qtd">Qtde: 1,00 kg</span>
-                </div>
-            </div>
-            <div class="cart-item">
-                <i class="fas fa-trash"></i>
-                <img src="image/produto3.png" alt="">
-                <div class="content">
-                    <h3>Coca-cola 2L</h3>
-                    <span class="price">R$ 9,99 und | </span>
-                    <span class="qtd">Qtde: 1 und</span>
-                </div>
-            </div>
-            <div class="total">
-                <h3>Total:<span class="price"> R$ 67,96</span></h3>
-            </div>
-            <a href="#" class="btn">Finalizar Compra</a>
-        </div>
-
-        <form action="#" class="login-form">
-            <h3>Seja Bem-Vindo(a)!</h3>
-            <p>Insira seus dados nos campos abaixo para fazer login.</p>
-            <input type="email" placeholder="Email" required>
-            <input type="password" placeholder="Senha" required>
-            <a href="#">Esqueceu a senha?</a>
-            <button type="submit" class="btn">Entrar</button>
-            <button type="button" class="criar-btn" onclick="window.location.href='cadastro.html'">Criar uma Conta</button>
-        </form>
+    <form action="#" class="login-form">
+        <h3>Seja Bem-Vindo(a)!</h3>
+        <p>Insira seus dados nos campos abaixo para fazer login.</p>
+        <input type="email" placeholder="Email" required>
+        <input type="password" placeholder="Senha" required>
+        <a href="#">Esqueceu a senha?</a>
+        <button type="submit" class="btn">Entrar</button>
+        <button type="button" class="criar-btn" onclick="window.location.href='cadastro.html'">Criar uma Conta</button>
+    </form>
 
     </header>
     <section class="cadastro-section">
@@ -100,8 +71,105 @@
             <button type="submit">Cadastrar</button>
         </form>
         <a href="index.html">Voltar para o inicio</a>
-    </section>
-    <script src="js/script.js"></script>
-    <script src="/js/cadastro.js"></script>
+
+<script>
+        // Atualiza o header do carrinho com botões de quantidade
+        function atualizarCarrinhoHeader() {
+            let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
+            let shoppingCart = document.querySelector('.shopping-cart');
+            if (!shoppingCart) return;
+            shoppingCart.innerHTML = '';
+            let total = 0;
+            carrinho.slice(0, 3).forEach((item, idx) => {
+                let imgSrc = item.img || item.imagem || 'image/SEM-IMAGEM.png';
+                let precoNum = typeof item.preco === 'string' ? parseFloat(item.preco.replace(',', '.')) : Number(item.preco);
+                let subtotal = precoNum * (item.qtd || 1);
+                total += subtotal;
+                shoppingCart.innerHTML += `
+                    <div class="cart-item">
+                        <i class="fas fa-trash" data-procod="${item.procod}"></i>
+                        <img src="${imgSrc}" alt="${item.nome}">
+                        <div class="content">
+                            <h3>${item.nome}</h3>
+                            <div class="qty-selector" style="margin: 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                                <button class="qty-minus" type="button" data-idx="${idx}">-</button>
+                                <input type="number" class="qty-input" min="1" value="${item.qtd || 1}" style="width: 40px; text-align: center; font-size: 1.2rem;">
+                                <button class="qty-plus" type="button" data-idx="${idx}">+</button>
+                            </div>
+                            <span class="price">R$ ${precoNum.toFixed(2)} ${item.und ? '| ' + item.und : ''}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            let totalQtd = carrinho.reduce((acc, item) => acc + (item.qtd || 1), 0);
+            shoppingCart.innerHTML += `<div class=\"ver-mais\"><a href=\"carrinho.html\" class=\"btn-ver-mais\">VER CARRINHO (${totalQtd})</a></div>`;
+            shoppingCart.innerHTML += `<div class=\"total\"><h3>Total:<span class=\"price\"> R$ ${total.toFixed(2)}</span></h3></div>`;
+            shoppingCart.innerHTML += `<a href=\"#\" class=\"btn\">Finalizar Compra</a>`;
+
+            // Eventos de quantidade no header
+            shoppingCart.querySelectorAll('.cart-item').forEach((div, idx) => {
+                const minus = div.querySelector('.qty-minus');
+                const plus = div.querySelector('.qty-plus');
+                const input = div.querySelector('.qty-input');
+                minus.onclick = () => {
+                    let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+                    // Remover produto completamente ao clicar no botão de remover
+                    carrinho.splice(idx, 1);
+                    localStorage.setItem('carrinho', JSON.stringify(carrinho));
+                    atualizarCarrinhoHeader();
+                    if (typeof updateCartBadge === 'function') updateCartBadge();
+                    window.dispatchEvent(new Event('storage'));
+                };
+                plus.onclick = () => {
+                    let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+                    carrinho[idx].qtd += 1;
+                    localStorage.setItem('carrinho', JSON.stringify(carrinho));
+                    atualizarCarrinhoHeader();
+                    if (typeof updateCartBadge === 'function') updateCartBadge();
+                    window.dispatchEvent(new Event('storage'));
+                };
+                input.oninput = () => {
+                    let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+                    let val = parseInt(input.value) || 1;
+                    if (val < 1) val = 1;
+                    carrinho[idx].qtd = val;
+                    localStorage.setItem('carrinho', JSON.stringify(carrinho));
+                    atualizarCarrinhoHeader();
+                    if (typeof updateCartBadge === 'function') updateCartBadge();
+                    window.dispatchEvent(new Event('storage'));
+                };
+            });
+        }
+        </script>
+        <script src="/js/cadastro.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.add-carrinho-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            let msg = document.createElement('div');
+            msg.textContent = 'ADICIONADO COM SUCESSO';
+            msg.style.position = 'fixed';
+            msg.style.top = '20px';
+            msg.style.left = '50%';
+            msg.style.transform = 'translateX(-50%)';
+            msg.style.background = '#1657cf';
+            msg.style.color = '#fff';
+            msg.style.padding = '1rem 2rem';
+            msg.style.borderRadius = '2rem';
+            msg.style.fontSize = '1.4rem';
+            msg.style.fontWeight = 'bold';
+            msg.style.zIndex = '9999';
+            document.body.appendChild(msg);
+            msg.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                msg.style.opacity = '0';
+                setTimeout(() => { msg.remove(); }, 500);
+            }, 1000);
+        });
+    });
+});
+</script>
+</section>
+<script src="js/script.js"></script>
 </body>
 </html>

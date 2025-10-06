@@ -911,3 +911,83 @@ section {
     
     
 }
+
+/* Bolinha de quantidade no ícone do carrinho - azul sem borda */
+#cart-btn {
+    position: relative;
+}
+.cart-qty-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--blue, #1976d2);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    transition: background 0.2s;
+}
+.carrinho-total-valor,
+#carrinho-total h3 {
+    font-weight: bold;
+    font-size: 2rem;
+    color: #222;
+    margin-top: 2rem;
+}
+#carrinho-total .price {
+    font-weight: bold;
+    font-size: 2.8rem;
+    color: var(--blue, #1976d2);
+    margin-left: 1rem;
+}
+.qty-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+.qty-selector button {
+    background: transparent;
+    color: var(--blue, #1976d2);
+    border: none;
+    border-radius: 0;
+    width: 24px;
+    height: 24px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    box-shadow: none;
+    padding: 0;
+}
+.qty-selector button:active {
+    color: #1152a5;
+}
+.qty-selector .qty-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+    border: none;
+    background: transparent;
+    width: 32px;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #222;
+    outline: none;
+}
+.qty-selector .qty-input::-webkit-outer-spin-button,
+.qty-selector .qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
