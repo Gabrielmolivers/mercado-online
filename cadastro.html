@@ -37,7 +37,7 @@
     </div>
 
     <form action="#" class="login-form">
-        <h3>Seja Bem-Vindo(a)!</h3>
+    <h3 id="login-title">Olá, Gabriel</h3>
         <p>Insira seus dados nos campos abaixo para fazer login.</p>
         <input type="email" placeholder="Email" required>
         <input type="password" placeholder="Senha" required>
@@ -68,9 +68,10 @@
             <input type="password" name="senha" placeholder="Senha" required>
             <input type="password" name="confirmarSenha" id="confirmarSenha" placeholder="Confirmar Senha" required>
             <div id="senha-erro" style="color: #d32f2f; font-size: 1.4rem; font-weight: bolder; padding-bottom: 1rem; display: none;">SENHAS NÃO SÃO IGUAIS</div>
-            <button type="submit">Cadastrar</button>
+            <button type="submit" id="btnCadastrar" style="background:#ccc;color:#888;cursor:not-allowed;" disabled>Cadastrar</button>
         </form>
         <a href="index.html">Voltar para o inicio</a>
+<script src="js/cadastro.js"></script>
 
 <script>
         // Atualiza o header do carrinho com botões de quantidade
@@ -141,7 +142,6 @@
             });
         }
         </script>
-        <script src="/js/cadastro.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.add-carrinho-btn').forEach(btn => {

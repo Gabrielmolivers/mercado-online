@@ -1,11 +1,50 @@
+const express = require('express');
+const router = express.Router();
+const connection = require('./connection');
+
+// Rota de login
+router.post('/login', express.json(), (req, res) => {
+  const { email, senha } = req.body;
+  if (!email || !senha) {
+    return res.status(400).json({ success: false, error: 'Email e senha obrigatórios.' });
+  }
+  connection.conectar((err, db) => {
+    if (err) {
+      return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco.' });
+    }
+    db.query('SELECT ID, NOMECLI, EMAIL FROM CLIENTES WHERE EMAIL = ? AND SENHA = ?', [email, senha], (err, result) => {
+      db.detach(() => {});
+      if (err) {
+        return res.status(500).json({ success: false, error: 'Erro ao buscar usuário.' });
+      }
+      if (result.length === 0) {
+        return res.status(401).json({ success: false, error: 'Email ou senha inválidos.' });
+      }
+      // Retorna dados básicos do usuário
+      res.json({ success: true, usuario: { id: result[0].ID, nome: result[0].NOMECLI, email: result[0].EMAIL } });
+    });
+  });
+});
 // Cache simples em memória
 let produtosCache = null;
 let cacheTimestamp = 0;
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
-const express = require('express');
-const router = express.Router();
-const connection = require('./connection');
+// ...existing code...
+// Rota para buscar dados completos do cliente
+router.get('/cliente/:id', (req, res) => {
+  const id = req.params.id;
+  if (!id) return res.status(400).json({ success: false, error: 'ID obrigatório.' });
+  connection.conectar((err, db) => {
+    if (err) return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco.' });
+    db.query('SELECT ENDERECO, BAIRRO, NUMERO FROM CLIENTES WHERE ID = ?', [id], (err, result) => {
+      db.detach(() => {});
+      if (err) return res.status(500).json({ success: false, error: 'Erro ao buscar cliente.' });
+      if (!result || result.length === 0) return res.status(404).json({ success: false, error: 'Cliente não encontrado.' });
+      res.json({ success: true, cliente: result[0] });
+    });
+  });
+});
 
 
 // Rota para buscar produtos
@@ -228,6 +267,7 @@ router.get('/conectar', (req, res) => {
 // Rota para finalizar compra
 router.post('/finalizar-compra', express.json(), (req, res) => {
   const itens = req.body.itens;
+  const cliente = req.body.cliente || {};
   if (!Array.isArray(itens) || itens.length === 0) {
     return res.status(400).json({ success: false, error: 'Carrinho vazio.' });
   }
@@ -236,7 +276,7 @@ router.post('/finalizar-compra', express.json(), (req, res) => {
       return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco.' });
     }
     // Cria novo pedido
-  db.query('SELECT MAX(IDPEDIDO) AS MAX_ID FROM PEDIDOS', [], (err, result) => {
+    db.query('SELECT MAX(IDPEDIDO) AS MAX_ID FROM PEDIDOS', [], (err, result) => {
       if (err) {
         db.detach();
         return res.status(500).json({ success: false, error: 'Erro ao buscar último IDPED.' });
@@ -244,9 +284,17 @@ router.post('/finalizar-compra', express.json(), (req, res) => {
       const novoId = (result[0].MAX_ID || 0) + 1;
       const data = new Date();
       const dtped = `${data.getFullYear()}-${String(data.getMonth()+1).padStart(2,'0')}-${String(data.getDate()).padStart(2,'0')}`;
+      const hrped = `${String(data.getHours()).padStart(2,'0')}:${String(data.getMinutes()).padStart(2,'0')}:${String(data.getSeconds()).padStart(2,'0')}`;
+      // Dados de entrega e pagamento do cliente
+      const clie_cod = cliente.id || null;
+      const clie_endentrega = cliente.endereco || '';
+      const clie_baientrega = cliente.bairro || '';
+      const clie_numentrega = cliente.numero || '';
+      const tipo_entrega = cliente.tipo_entrega || '';
+      const meio_pagto = cliente.meio_pagto || '';
       db.query(
-        'INSERT INTO PEDIDOS (IDPEDIDO, DTPEDIDO) VALUES (?, ?)',
-        [novoId, dtped],
+        'INSERT INTO PEDIDOS (IDPEDIDO, DTPEDIDO, HRPEDIDO, CLIE_COD, CLIE_ENDENTREGA, CLIE_BAIENTREGA, CLIE_NUMENTREGA, TIPO_ENTREGA, MEIO_PAGTO) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [novoId, dtped, hrped, clie_cod, clie_endentrega, clie_baientrega, clie_numentrega, tipo_entrega, meio_pagto],
         (err) => {
           if (err) {
             db.detach();

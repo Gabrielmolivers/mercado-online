@@ -46,8 +46,7 @@
             <a href="#" class="btn">Finalizar Compra</a>
         </div>
         <form action="#" class="login-form">
-            <h3>Seja Bem-Vindo(a)!</h3>
-            <p>Insira seus dados nos campos abaixo para fazer login.</p>
+            <h3 id="login-title">Seja Bem-Vindo(a)!</h3>
             <input type="email" placeholder="Email" required>
             <input type="password" placeholder="Senha" required>
             <a href="#">Esqueceu a senha?</a>
@@ -72,26 +71,51 @@
                         alert('Seu carrinho está vazio.');
                         return;
                     }
-                    fetch('/api/finalizar-compra', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ itens: carrinho })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Compra finalizada com sucesso!');
-                            localStorage.removeItem('carrinho');
-                            window.location.reload();
-                        } else {
-                            alert('Erro ao finalizar compra: ' + (data.error || 'Tente novamente.'));
-                        }
-                    })
-                    .catch(() => {
-                        alert('Erro ao conectar ao servidor.');
-                    });
+                    let usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
+                    if (!usuario || !usuario.id) {
+                        alert('Você precisa estar logado para finalizar a compra.');
+                        window.location.href = 'cadastro.html';
+                        return;
+                    }
+                    // Busca dados do cliente na base antes de finalizar
+                    fetch(`/api/cliente/${usuario.id}`)
+                        .then(res => res.json())
+                        .then(cli => {
+                            if (cli.success && cli.cliente) {
+                                const cliente = {
+                                    id: usuario.id,
+                                    nome: usuario.nome,
+                                    endereco: cli.cliente.ENDERECO || cli.cliente.endereco || '',
+                                    bairro: cli.cliente.BAIRRO || cli.cliente.bairro || '',
+                                    numero: cli.cliente.NUMERO || cli.cliente.numero || ''
+                                };
+                                fetch('/api/finalizar-compra', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ itens: carrinho, cliente })
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        alert('Compra finalizada com sucesso!');
+                                        localStorage.removeItem('carrinho');
+                                        window.location.reload();
+                                    } else {
+                                        alert('Erro ao finalizar compra: ' + (data.error || 'Tente novamente.'));
+                                    }
+                                })
+                                .catch(() => {
+                                    alert('Erro ao conectar ao servidor.');
+                                });
+                            } else {
+                                alert('Não foi possível obter os dados do cliente.');
+                            }
+                        })
+                        .catch(() => {
+                            alert('Erro ao buscar dados do cliente.');
+                        });
                 });
             }
         });
@@ -185,4 +209,5 @@
     }
     </script>
 </body>
+<script src="js/script.js"></script>
 </html>

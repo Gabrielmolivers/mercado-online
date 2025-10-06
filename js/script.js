@@ -124,10 +124,147 @@ function conectarBanco() {
 
 // Adiciona eventos aos botões
 window.addEventListener('DOMContentLoaded', function() {
+    // Atualiza título do login dinamicamente
+    function atualizarTituloLogin() {
+        const usuario = localStorage.getItem('usuarioLogado');
+        let nome = 'visitante';
+        if (usuario) {
+            try {
+                nome = JSON.parse(usuario).nome;
+            } catch {}
+        }
+        document.querySelectorAll('#login-title').forEach(el => {
+            el.textContent = `Olá, ${nome}`;
+        });
+    }
+    atualizarTituloLogin();
+    window.addEventListener('storage', atualizarTituloLogin);
+    window.addEventListener('usuarioLogado', atualizarTituloLogin);
     var btnConectar = document.getElementById('btn-conectar');
     if (btnConectar) btnConectar.addEventListener('click', conectarBanco);
-    
+
+    // Login
+    var loginForm = document.querySelector('.login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = loginForm.querySelector('input[type="email"]').value.trim();
+            const senha = loginForm.querySelector('input[type="password"]').value.trim();
+            if (!email || !senha) {
+                alert('Preencha email e senha.');
+                return;
+            }
+            fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, senha })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Busca dados completos do cliente após login
+                    fetch(`/api/cliente/${data.usuario.id}`)
+                        .then(res => res.json())
+                        .then(cli => {
+                            if (cli.success && cli.cliente) {
+                                // Junta dados básicos e dados de endereço
+                                const usuarioCompleto = { ...data.usuario, ...cli.cliente };
+                                localStorage.setItem('usuarioLogado', JSON.stringify(usuarioCompleto));
+                                mostrarAreaLogada(usuarioCompleto);
+                            } else {
+                                localStorage.setItem('usuarioLogado', JSON.stringify(data.usuario));
+                                mostrarAreaLogada(data.usuario);
+                            }
+                            loginForm.classList.remove('active');
+                        })
+                        .catch(() => {
+                            localStorage.setItem('usuarioLogado', JSON.stringify(data.usuario));
+                            mostrarAreaLogada(data.usuario);
+                            loginForm.classList.remove('active');
+                        });
+                } else {
+                    alert(data.error || 'Erro ao logar.');
+                }
+            })
+            .catch(() => alert('Erro ao conectar ao servidor.'));
+        });
+
+        // Ao abrir o login, mostra área logada se já estiver logado
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) {
+            loginBtn.onclick = function() {
+                if (loginForm) loginForm.classList.toggle('active');
+                if (searchForm) searchForm.classList.remove('active');
+                if (shoppingCart) shoppingCart.classList.remove('active');
+                if (navbar) navbar.classList.remove('active');
+                const usuario = localStorage.getItem('usuarioLogado');
+                if (usuario) {
+                    // Oculta campos de email/senha e mostra área logada
+                    loginForm.querySelector('input[type="email"]').style.display = 'none';
+                    loginForm.querySelector('input[type="password"]').style.display = 'none';
+                    loginForm.querySelector('button[type="submit"]').style.display = 'none';
+                    loginForm.querySelector('button.criar-btn').style.display = 'none';
+                    loginForm.querySelector('a').style.display = 'none';
+                    let area = loginForm.querySelector('#area-logada-login');
+                    if (!area) {
+                        area = document.createElement('div');
+                        area.id = 'area-logada-login';
+                        area.style = 'margin-top:10px;background:#e3f2fd;padding:8px 16px;border-radius:8px;color:#1a4fa3;font-weight:bold;display:flex;flex-direction:column;align-items:flex-start;gap:10px;';
+                        loginForm.appendChild(area);
+                    }
+                    const userObj = JSON.parse(usuario);
+                    // Atualiza título do login
+                    const loginTitle = loginForm.querySelector('#login-title');
+                    if (loginTitle) loginTitle.textContent = `Olá, ${userObj.nome}`;
+                    area.innerHTML = `<button id=\"perfil-btn-login\" style=\"background:#1976d2;color:#fff;border:none;padding:6px 18px;border-radius:6px;cursor:pointer;font-weight:bold;\">Ver perfil</button>`;
+                area.innerHTML = `<button id=\"perfil-btn-login\" style=\"background:none;color:#1976d2;border:none;padding:0;font-weight:bold;cursor:pointer;text-decoration:none;\">Ver perfil</button>`;
+                    // Botão sair fora do quadro azul
+                    let btnSair = loginForm.querySelector('#logout-btn-login');
+                    if (!btnSair) {
+                        btnSair = document.createElement('button');
+                        btnSair.id = 'logout-btn-login';
+                        btnSair.textContent = 'Sair';
+                        btnSair.style = 'background:#fff;color:#1976d2;border:1px solid #1976d2;padding:6px 18px;border-radius:6px;cursor:pointer;font-weight:bold;margin-top:12px;display:block;width:100%;transition:background 0.2s,color 0.2s;';
+                        btnSair.onmouseover = function() { this.style.background = '#1976d2'; this.style.color = '#fff'; };
+                        btnSair.onmouseout = function() { this.style.background = '#fff'; this.style.color = '#1976d2'; };
+                        loginForm.appendChild(btnSair);
+                    }
+                    document.getElementById('perfil-btn-login').onclick = function() {
+                        window.location.href = 'perfil.html';
+                    };
+                    btnSair.onclick = function() {
+                        localStorage.removeItem('usuarioLogado');
+                        area.remove();
+                        btnSair.remove();
+                        if (loginTitle) loginTitle.textContent = 'Olá, Gabriel';
+                        loginForm.querySelector('input[type="email"]').style.display = '';
+                        loginForm.querySelector('input[type="password"]').style.display = '';
+                        loginForm.querySelector('button[type="submit"]').style.display = '';
+                        loginForm.querySelector('button.criar-btn').style.display = '';
+                        loginForm.querySelector('a').style.display = '';
+                    };
+                } else {
+                    // Exibe campos normalmente se não estiver logado
+                    let area = loginForm.querySelector('#area-logada-login');
+                    if (area) area.remove();
+                    loginForm.querySelector('input[type="email"]').style.display = '';
+                    loginForm.querySelector('input[type="password"]').style.display = '';
+                    loginForm.querySelector('button[type="submit"]').style.display = '';
+                    loginForm.querySelector('button.criar-btn').style.display = '';
+                    loginForm.querySelector('a').style.display = '';
+                }
+            };
+        }
+    }
 });
+
+// Exibe área logada no header
+function mostrarAreaLogada(usuario) {
+    // Não exibe mais área logada no topo do header
+}
+
+// Exibe área logada se já estiver logado
+// Não exibe mais área logada no topo ao carregar página
 
 // Adiciona badge de quantidade ao ícone do carrinho
 function updateCartBadge() {

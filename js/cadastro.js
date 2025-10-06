@@ -112,37 +112,78 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    document.getElementById('cadastroForm').addEventListener('submit', function (e) {
+    const cadastroForm = document.getElementById('cadastroForm');
+    const btnCadastrar = document.getElementById('btnCadastrar');
+    const erroSenha = document.getElementById('senha-erro');
+    function validarBotao() {
+        // Verifica todos os campos obrigatórios
+        const obrigatorios = [
+            'nome', 'email', 'endereco', 'bairro', 'numero', 'cep', 'cidade', 'estado', 'celular', 'senha', 'confirmarSenha'
+        ];
+        let preenchidos = true;
+        obrigatorios.forEach(campo => {
+            const input = cadastroForm.querySelector(`[name="${campo}"]`);
+            if (!input || !input.value.trim()) preenchidos = false;
+        });
+        // Senhas devem coincidir
+        const senhaInput = cadastroForm.querySelector('input[name="senha"]');
+        const confirmarSenhaInput = cadastroForm.querySelector('input[name="confirmarSenha"]');
+        const senhasOk = senhaInput.value === confirmarSenhaInput.value && senhaInput.value.length > 0;
+        if (preenchidos && senhasOk) {
+            btnCadastrar.disabled = false;
+            btnCadastrar.style.background = '';
+            btnCadastrar.style.color = '';
+            btnCadastrar.style.cursor = '';
+            erroSenha.style.display = 'none';
+        } else {
+            btnCadastrar.disabled = true;
+            btnCadastrar.style.background = '#ccc';
+            btnCadastrar.style.color = '#888';
+            btnCadastrar.style.cursor = 'not-allowed';
+            if (senhaInput.value.length > 0 && confirmarSenhaInput.value.length > 0 && senhaInput.value !== confirmarSenhaInput.value) {
+                erroSenha.style.display = 'block';
+            } else {
+                erroSenha.style.display = 'none';
+            }
+        }
+    }
+    cadastroForm.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', validarBotao);
+    });
+    validarBotao();
+
+    cadastroForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        const form = e.target;
-        const btnCadastrar = form.querySelector('button[type="submit"]');
-        const senha = form.senha.value;
-        const confirmarSenha = form.confirmarSenha.value;
-        const erroSenha = document.getElementById('senha-erro');
+        const senha = cadastroForm.senha.value;
+        const confirmarSenha = cadastroForm.confirmarSenha.value;
         if (senha !== confirmarSenha) {
             erroSenha.style.display = 'block';
             btnCadastrar.disabled = true;
-            e.preventDefault();
+            btnCadastrar.style.background = '#ccc';
+            btnCadastrar.style.color = '#888';
+            btnCadastrar.style.cursor = 'not-allowed';
             document.getElementById('confirmarSenha').focus();
             return;
         } else {
             erroSenha.style.display = 'none';
             btnCadastrar.disabled = false;
+            btnCadastrar.style.background = '';
+            btnCadastrar.style.color = '';
+            btnCadastrar.style.cursor = '';
         }
         // ...continua o envio normalmente
-
         const dados = {
-            nome: form.nome.value,
-            email: form.email.value,
-            senha: form.senha.value,
-            endereco: form.endereco.value,
-            bairro: form.bairro.value,
-            numero: form.numero.value,
-            complemento: form.complemento.value,
-            cidade: form.cidade.value,
-            estado: form.estado.value,
-            cep: form.cep.value,
-            celular: form.celular.value,
+            nome: cadastroForm.nome.value,
+            email: cadastroForm.email.value,
+            senha: cadastroForm.senha.value,
+            endereco: cadastroForm.endereco.value,
+            bairro: cadastroForm.bairro.value,
+            numero: cadastroForm.numero.value,
+            complemento: cadastroForm.complemento.value,
+            cidade: cadastroForm.cidade.value,
+            estado: cadastroForm.estado.value,
+            cep: cadastroForm.cep.value,
+            celular: cadastroForm.celular.value,
             dtcadastro: new Date().toISOString().slice(0, 10) // formato YYYY-MM-DD
         };
         fetch('/api/cadastro', {
@@ -156,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (data.success) {
                     alert('Cadastro realizado com sucesso!');
-                    form.reset();
+                    cadastroForm.reset();
                     window.location.href = 'index.html';
                 } else {
                     alert('Erro ao cadastrar: ' + (data.error || ''));
