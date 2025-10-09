@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
     <!-- Swiper JS -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <!-- API base and helper must load before inline scripts -->
+    <script src="js/env.js"></script>
+    <script src="js/config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mercado Online</title>
@@ -154,7 +157,7 @@
 // Carrega os 20 produtos em destaque da base
 const loaderDestaque = document.getElementById('loader-destaque');
 if (loaderDestaque) loaderDestaque.style.display = 'flex';
-fetch('/api/produtos?offset=0&limit=20')
+fetch(apiUrl('/api/produtos?offset=0&limit=20'))
     .then(res => res.json())
     .then(data => {
         const lista = document.getElementById('destaque-lista');
@@ -279,9 +282,8 @@ function adicionarAoCarrinho(produto, qtd = 1) {
         <p>&copy; 2025 Control Power. Todos os direitos reservados.</p>
     </footer>
 
+    <script src="js/env.js"></script>
     <script src="js/script.js"></script>
-
-
 <script>
 // Atualiza o header do carrinho ao abrir a página
 window.addEventListener('DOMContentLoaded', function() {

@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
             celular: cadastroForm.celular.value,
             dtcadastro: new Date().toISOString().slice(0, 10) // formato YYYY-MM-DD
         };
-        fetch('/api/cadastro', {
+    fetch(apiUrl('/api/cadastro'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

@@ -25,11 +25,12 @@
         box-sizing: border-box;
     }
 
-    @media (max-width: 700px) {
+    /* Abaixo de 630px: mostrar apenas 2 produtos por linha */
+    @media (max-width: 630px) {
         .box {
-            flex: 1 1 30%;
-            max-width: 30%;
-            min-width: 30%;
+            flex: 1 1 48%;
+            max-width: 48%;
+            min-width: 48%;
         }
     }
 
@@ -39,9 +40,9 @@
         }
 
         .box {
-            flex: 1 1 42%;
-            max-width: 42%;
-            min-width: 42%;
+            flex: 1 1 48%;
+            max-width: 48%;
+            min-width: 48%;
         }
     }
 </style>
@@ -55,6 +56,8 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/svg+xml" href="image/favicon.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="js/env.js"></script>
+    <script src="js/config.js"></script>
 </head>
 
 <body>
@@ -115,6 +118,8 @@
         <a href="index.html">Voltar para o início</a>
     </section>
 
+    <script src="js/env.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/script.js"></script>
     <script src="js/produtos.js"></script>
 
@@ -181,7 +186,7 @@ document.querySelector('.shopping-cart').addEventListener('click', function(e) {
 
         function carregarProdutos() {
             // btnMais removido, não faz mais parte da interface
-            fetch(`/api/produtos?offset=${offset}&limit=${limit}`)
+            fetch(apiUrl(`/api/produtos?offset=${offset}&limit=${limit}`))
                 .then(res => res.json())
                 .then(data => {
                     if (data.success && data.produtos.length > 0) {

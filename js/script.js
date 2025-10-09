@@ -109,7 +109,7 @@ if (typeof Swiper !== 'undefined') {
 
 // Função para conectar ao banco Firebird
 function conectarBanco() {
-    fetch('/api/conectar')
+    fetch(apiUrl('/api/conectar'))
         .then(res => res.json())
         .then(data => {
             if (data.success) {
@@ -154,7 +154,7 @@ window.addEventListener('DOMContentLoaded', function() {
                 alert('Preencha email e senha.');
                 return;
             }
-            fetch('/api/login', {
+            fetch(apiUrl('/api/login'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, senha })
@@ -163,7 +163,7 @@ window.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     // Busca dados completos do cliente após login
-                    fetch(`/api/cliente/${data.usuario.id}`)
+                    fetch(apiUrl(`/api/cliente/${data.usuario.id}`))
                         .then(res => res.json())
                         .then(cli => {
                             if (cli.success && cli.cliente) {

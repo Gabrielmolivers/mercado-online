@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const connection = require('./connection');
 
+// Healthcheck simples (não toca no banco)
+router.get('/healthz', (req, res) => {
+  res.json({ ok: true, time: new Date().toISOString() });
+});
+
 // Rota de login
 router.post('/login', express.json(), (req, res) => {
   const { email, senha } = req.body;

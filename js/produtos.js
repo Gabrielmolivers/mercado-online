@@ -19,7 +19,7 @@ function buscarProdutos(offset = 0, limit = 20) {
     if (termoBusca) {
         url += `&search=${encodeURIComponent(termoBusca)}`;
     }
-    return fetch(url, {
+    return fetch(apiUrl(url), {
         headers: {
             'Cache-Control': 'no-cache',
             'Pragma': 'no-cache',

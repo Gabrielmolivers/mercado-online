@@ -3,7 +3,7 @@ const Firebird = require('node-firebird-dev');
 const options = {
   //186.251.15.201
   //192.168.2.150
-  host: '186.251.15.201',
+  host: '192.168.2.150',
   port: 3050,
   database: 'C:\\CLIENTES_EXTERNO\\MERCADO_ONLINE\\APPVENDA.FDB',
   user: 'SYSDBA',

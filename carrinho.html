@@ -78,7 +78,7 @@
                         return;
                     }
                     // Busca dados do cliente na base antes de finalizar
-                    fetch(`/api/cliente/${usuario.id}`)
+                    fetch(apiUrl(`/api/cliente/${usuario.id}`))
                         .then(res => res.json())
                         .then(cli => {
                             if (cli.success && cli.cliente) {
@@ -89,7 +89,7 @@
                                     bairro: cli.cliente.BAIRRO || cli.cliente.bairro || '',
                                     numero: cli.cliente.NUMERO || cli.cliente.numero || ''
                                 };
-                                fetch('/api/finalizar-compra', {
+                                fetch(apiUrl('/api/finalizar-compra'), {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json'
@@ -125,6 +125,8 @@
     <footer>
         <p>&copy; 2025 Control Power. Todos os direitos reservados.</p>
     </footer>
+    <script src="js/env.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/carrinho.js"></script>
     <script>
 
