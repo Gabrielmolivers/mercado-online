@@ -15,9 +15,14 @@ function buscarProdutos(offset = 0, limit = 20) {
     // Verifica se há termo de busca na URL
     const urlParams = new URLSearchParams(window.location.search);
     const termoBusca = urlParams.get('search');
+    const codgrp = urlParams.get('codgrp');
+    const categoriaNome = urlParams.get('categoria');
     let url = `/api/produtos?offset=0&limit=10000&_=${unique}`;
     if (termoBusca) {
         url += `&search=${encodeURIComponent(termoBusca)}`;
+    }
+    if (codgrp) {
+        url += `&codgrp=${encodeURIComponent(codgrp)}`;
     }
     return fetch(apiUrl(url), {
         headers: {
@@ -30,7 +35,13 @@ function buscarProdutos(offset = 0, limit = 20) {
         .then(data => {
             if (loader) loader.style.display = 'none';
             if (data.success && Array.isArray(data.produtos)) {
-                return data.produtos;
+                let lista = data.produtos;
+                // Fallback: se não veio codgrp mas veio categoria, filtra por nome do grupo
+                if (!codgrp && categoriaNome) {
+                    const alvo = normalizar(categoriaNome);
+                    lista = lista.filter(p => normalizar(p.grupo || '') === alvo);
+                }
+                return lista;
             }
             return [];
         })
@@ -40,17 +51,44 @@ function buscarProdutos(offset = 0, limit = 20) {
         });
 }
 
+// Normaliza acentos/maiúsculas
+function normalizar(txt) {
+    return String(txt || '')
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .trim()
+        .toLowerCase();
+}
+
 function exibirProdutos(lista) {
     const container = document.getElementById('produtos-lista');
     if (!container) return;
     container.innerHTML = '';
+    const toNumber = (n) => {
+        if (n === null || n === undefined) return NaN;
+        if (typeof n === 'number') return n;
+        const s = String(n).replace(',', '.');
+        const v = Number(s);
+        return isNaN(v) ? NaN : v;
+    };
     lista.forEach(prod => {
         const box = document.createElement('div');
         box.className = 'box';
         box.setAttribute('data-procod', prod.procod);
-        box.style = 'background: #fff; box-shadow: 0 .1rem 1rem rgb(124, 124, 124); border-radius: .5rem; text-align: center; display: block; height: 25rem; width: 20rem;';
-        const precoFormatado = Number(prod.preco).toFixed(2);
+        box.style = 'background: #fff; box-shadow: 0 .1rem 1rem rgb(124, 124, 124); border-radius: .5rem; text-align: center; display: block; height: 25rem; width: 20rem; position:relative;';
+        // Fallback robusto: considera promo ativa se o backend marcar promoAtivo OU
+        // se houver precoPromo válido (< preco) e a data final não expirou
+        const now = new Date();
+        const fimOk = prod.fimpromo ? (new Date(prod.fimpromo) >= now) : false;
+        const iniOk = prod.inipromo ? (new Date(prod.inipromo) <= now) : true;
+        const precoBaseNum = toNumber(prod.preco);
+        const precoPromoNum = toNumber(prod.precoPromo);
+        const precoCond = (precoPromoNum > 0 && precoPromoNum < precoBaseNum);
+        const hasPromo = !!((prod.promoAtivo && precoCond) || (precoCond && fimOk && iniOk));
+        const precoBaseFmt = (!isNaN(precoBaseNum) ? precoBaseNum : 0).toFixed(2);
+        const precoPromoFmt = hasPromo ? (!isNaN(precoPromoNum) ? precoPromoNum : 0).toFixed(2) : null;
         box.innerHTML = `
+            ${hasPromo ? `<div class="badge-desconto">-${Number(prod.descontoPerc||0)}%</div>` : ''}
             ${prod.imagemTipo && prod.imagem ? `<img src="data:image/${prod.imagemTipo};base64,${prod.imagem}" alt="${prod.nome}" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">` : `<img src="image/SEM-IMAGEM.png" alt="Sem imagem" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">`}
             <h1 style="font-size: 1.5rem; color: rgb(22, 87, 207);">${prod.nome}</h1>
             <div class="qty-selector" style="margin: 0.5rem 0; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
@@ -59,7 +97,10 @@ function exibirProdutos(lista) {
                 <button class="qty-plus" type="button">+</button>
             </div>
             <div class="box-footer">
-                <div class="price">R$ ${precoFormatado} <span class="und">/${prod.und}</span></div>
+                <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                  ${hasPromo ? `<div class="price-old">R$ ${precoBaseFmt}</div>` : ''}
+                  <div class="price">R$ ${hasPromo ? precoPromoFmt : precoBaseFmt} <span class="und">/${prod.und}</span></div>
+                </div>
                 <button class="add-carrinho-btn"><i class="fas fa-shopping-cart"></i></button>
             </div>
         `;
@@ -85,7 +126,15 @@ function exibirProdutos(lista) {
             const prodcod = box.getAttribute('data-procod');
             const prod = lista.find(p => p.procod == prodcod);
             const qtd = parseInt(input.value) || 1;
-            adicionarAoCarrinho(prod, qtd);
+            const now = new Date();
+            const fimOk = prod.fimpromo ? (new Date(prod.fimpromo) >= now) : false;
+            const iniOk = prod.inipromo ? (new Date(prod.inipromo) <= now) : true;
+            const precoBaseNum = toNumber(prod.preco);
+            const precoPromoNum = toNumber(prod.precoPromo);
+            const precoCond = (precoPromoNum > 0 && precoPromoNum < precoBaseNum);
+            const hasPromo = !!((prod.promoAtivo && precoCond) || (precoCond && fimOk && iniOk));
+            const prodCarrinho = { ...prod, preco: hasPromo ? precoPromoNum : precoBaseNum };
+            adicionarAoCarrinho(prodCarrinho, qtd);
             // Mensagem de confirmação com fade out
             let msg = document.createElement('div');
             msg.textContent = 'ADICIONADO COM SUCESSO';
@@ -130,8 +179,64 @@ function ordenarProdutos(tipo) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Ajusta título com categoria, se presente
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoriaNome = urlParams.get('categoria');
+    const titulo = document.querySelector('.produtos-section h2');
+    if (titulo && categoriaNome) {
+        titulo.textContent = `Produtos - ${categoriaNome}`;
+    }
     const selectOrdenar = document.getElementById('ordenar-select');
     const btnMais = document.getElementById('mostrarMais');
+
+    // Popular e lidar com select de categorias
+    const categoriaSelect = document.getElementById('categoria-select');
+    if (categoriaSelect) {
+        fetch(apiUrl('/api/categorias'))
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success || !Array.isArray(data.categorias)) return;
+                // Preenche opções
+                data.categorias.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.codgrp;
+                    opt.textContent = cat.nome;
+                    categoriaSelect.appendChild(opt);
+                });
+                // Seleciona atual se vier na URL
+                const codgrpAtual = (new URLSearchParams(window.location.search)).get('codgrp');
+                const categoriaAtual = (new URLSearchParams(window.location.search)).get('categoria');
+                if (codgrpAtual && categoriaSelect.querySelector(`option[value="${CSS.escape(codgrpAtual)}"]`)) {
+                    categoriaSelect.value = codgrpAtual;
+                } else if (categoriaAtual) {
+                    // Tenta selecionar pelo nome
+                    [...categoriaSelect.options].forEach(o => {
+                        if (o.textContent.toLowerCase() === categoriaAtual.toLowerCase()) categoriaSelect.value = o.value;
+                    });
+                }
+            })
+            .catch(() => {});
+
+        categoriaSelect.addEventListener('change', () => {
+            const sel = categoriaSelect.options[categoriaSelect.selectedIndex];
+            const codgrpSel = categoriaSelect.value;
+            const nomeSel = sel ? sel.textContent : '';
+            const params = new URLSearchParams(window.location.search);
+            if (codgrpSel) {
+                params.set('codgrp', codgrpSel);
+                params.set('categoria', nomeSel);
+            } else {
+                params.delete('codgrp');
+                params.delete('categoria');
+            }
+            const novaUrl = 'produtos.html' + (params.toString() ? ('?' + params.toString()) : '');
+            window.history.replaceState(null, '', novaUrl);
+            // Atualiza título
+            if (titulo) titulo.textContent = codgrpSel ? `Produtos - ${nomeSel}` : 'Produtos';
+            // Recarrega lista com novo filtro
+            atualizarProdutosOrdenados(selectOrdenar ? selectOrdenar.value : 'padrao');
+        });
+    }
     function atualizarProdutosOrdenados(tipo) {
         buscarProdutos().then(produtos => {
             produtosCache = produtos;
@@ -146,8 +251,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Busca automática ao carregar se houver termo na URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const termoBusca = urlParams.get('search');
+    const urlParams2 = new URLSearchParams(window.location.search);
+    const termoBusca = urlParams2.get('search');
     if (termoBusca) {
         buscarProdutos().then(produtos => {
             produtosOrdenados = produtos;

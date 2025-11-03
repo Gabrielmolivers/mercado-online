@@ -36,6 +36,8 @@ let shoppingCart = document.querySelector('.shopping-cart');
 const cartBtn = document.querySelector('#cart-btn');
 if (cartBtn) {
     cartBtn.onclick = () => {
+        // Atualiza o conteúdo do mini-carrinho sempre que abrir
+        if (typeof atualizarCarrinhoHeader === 'function') atualizarCarrinhoHeader();
         if (shoppingCart) shoppingCart.classList.toggle('active');
         if (searchForm) searchForm.classList.remove('active');
         if (loginForm) loginForm.classList.remove('active');
@@ -75,37 +77,9 @@ window.onscroll = () => {
 
 
 
-if (typeof Swiper !== 'undefined') {
-    var swiper = new Swiper(".produto-slider, .categorias-slider", {
-        loop: true,
-        spaceBetween: 20,
-
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-        },
-
-        autoplay: {
-            delay: 7500,
-            disableOnInteraction: false,
-        },
-
-        breakpoints: {
-            0: {
-                slidesPerView: 2,
-            },
-            768: {
-                slidesPerView: 3,
-            },
-            1020: {
-                slidesPerView: 4,
-            },
-            1240: {
-                slidesPerView: 5,
-            },
-        }
-    });
-}
+// Swiper não é mais auto-inicializado aqui.
+// Cada página deve inicializar seus próprios sliders após montar o conteúdo
+// para evitar conflitos com itens dinâmicos.
 
 // Função para conectar ao banco Firebird
 function conectarBanco() {
@@ -216,8 +190,12 @@ window.addEventListener('DOMContentLoaded', function() {
                     // Atualiza título do login
                     const loginTitle = loginForm.querySelector('#login-title');
                     if (loginTitle) loginTitle.textContent = `Olá, ${userObj.nome}`;
-                    area.innerHTML = `<button id=\"perfil-btn-login\" style=\"background:#1976d2;color:#fff;border:none;padding:6px 18px;border-radius:6px;cursor:pointer;font-weight:bold;\">Ver perfil</button>`;
-                area.innerHTML = `<button id=\"perfil-btn-login\" style=\"background:none;color:#1976d2;border:none;padding:0;font-weight:bold;cursor:pointer;text-decoration:none;\">Ver perfil</button>`;
+                                        // Ações rápidas: apenas Ver perfil
+                                        area.innerHTML = `
+                                                <div style="display:flex;flex-direction:column;gap:6px;">
+                                                    <button id="perfil-btn-login" style="background:none;color:#1976d2;border:none;padding:0;font-weight:bold;cursor:pointer;text-decoration:none;">Ver perfil</button>
+                                                </div>
+                                        `;
                     // Botão sair fora do quadro azul
                     let btnSair = loginForm.querySelector('#logout-btn-login');
                     if (!btnSair) {
@@ -232,6 +210,7 @@ window.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('perfil-btn-login').onclick = function() {
                         window.location.href = 'perfil.html';
                     };
+                    // Removido botão "Meus pedidos" do header/login
                     btnSair.onclick = function() {
                         localStorage.removeItem('usuarioLogado');
                         area.remove();
@@ -348,7 +327,51 @@ function atualizarCarrinhoHeader() {
                 window.dispatchEvent(new Event('storage'));
             };
         });
+
+        // Botão "Finalizar Compra" do header: se logado, vai para checkout; senão, vai para cadastro
+        const finalizarHeader = shoppingCart.querySelector('a.btn');
+        if (finalizarHeader) {
+            finalizarHeader.addEventListener('click', function(e) {
+                e.preventDefault();
+                const carrinhoAtual = JSON.parse(localStorage.getItem('carrinho') || '[]');
+                if (!carrinhoAtual.length) {
+                    alert('Seu carrinho está vazio.');
+                    return;
+                }
+                const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
+                if (!usuario || !usuario.id) {
+                    alert('Você precisa estar logado para continuar.');
+                    window.location.href = 'cadastro.html';
+                    return;
+                }
+                window.location.href = 'checkout.html';
+            });
+        }
 }
+
+// Delegação: remover item do mini-carrinho pelo ícone de lixeira
+document.addEventListener('click', function(e) {
+    const icon = e.target.closest('.shopping-cart .fa-trash');
+    if (!icon) return;
+    const procod = icon.getAttribute('data-procod');
+    let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
+    const idx = carrinho.findIndex(item => String(item.procod) === String(procod));
+    if (idx !== -1) {
+        carrinho.splice(idx, 1);
+        localStorage.setItem('carrinho', JSON.stringify(carrinho));
+        if (typeof atualizarCarrinhoHeader === 'function') atualizarCarrinhoHeader();
+        if (typeof updateCartBadge === 'function') updateCartBadge();
+        window.dispatchEvent(new Event('storage'));
+    }
+});
+
+// Mantém o mini-carrinho atualizado em todas as páginas
+window.addEventListener('DOMContentLoaded', function() {
+    if (typeof atualizarCarrinhoHeader === 'function') atualizarCarrinhoHeader();
+});
+window.addEventListener('storage', function() {
+    if (typeof atualizarCarrinhoHeader === 'function') atualizarCarrinhoHeader();
+});
 
 // Atualiza badge ao carregar página e ao modificar carrinho
 window.addEventListener('DOMContentLoaded', updateCartBadge);

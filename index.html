@@ -2,150 +2,65 @@
 <html lang="pt-BR">
 
 <head>
-    <link rel="icon" type="image/svg+xml" href="image/favicon.svg">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" type="text/css" href="css/style.css">
-    <!-- Swiper CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
-    <!-- Swiper JS -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-    <!-- API base and helper must load before inline scripts -->
-    <script src="js/env.js"></script>
-    <script src="js/config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mercado Online</title>
-
+    <link rel="icon" type="image/svg+xml" href="image/favicon.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script src="js/env.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/script.js" defer></script>
 </head>
 
 <body>
-
-    <!--<header>-->
+    <!-- Header -->
     <header class="header">
-    <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
+        <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
         <nav class="navbar">
             <a href="maisvendidos" style="text-decoration: line-through;">Mais Vendidos</a>
-            <a href="ofertas" style="text-decoration: line-through;">Ofertas</a>
+            <a href="ofertas.html">Ofertas</a>
             <a href="produtos.html">Produtos</a>
-            <a href="departamentos" style="text-decoration: line-through;">Departamentos</a>
+            <a href="departamentos.html">Departamentos</a>
             <a href="contato" style="text-decoration: line-through;">Contato</a>
         </nav>
-
         <div class="icons">
             <div id="search-btn" class="fas fa-search"></div>
             <div id="cart-btn" class="fas fa-shopping-cart"></div>
             <div id="login-btn" class="fas fa-user"></div>
             <div id="menu-btn" class="fas fa-bars"></div>
-
         </div>
-
         <form class="search-form">
             <input type="text" id="search-box" placeholder="Buscar produtos...">
             <label for="search-box" class="fas fa-search"></label>
         </form>
-
-        <div class="shopping-cart">
-            
-            <a href="#" class="btn">Finalizar Compra</a>
-        </div>
-
-    <form action="#" class="login-form">
-            <h3 id="login-title">Seja Bem-Vindo(a)!</h3>
+        <div class="shopping-cart"></div>
+        <form action="#" class="login-form">
+            <h3 id="login-title">Olá, visitante</h3>
             <input type="email" placeholder="Email" required>
             <input type="password" placeholder="Senha" required>
             <a href="#">Esqueceu a senha?</a>
             <button type="submit" class="btn">Entrar</button>
             <button type="button" class="criar-btn" onclick="window.location.href='cadastro.html'">Criar uma Conta</button>
         </form>
-
     </header>
 
+    <!-- Hero/banner -->
+    <section class="inicio"></section>
 
-
-    <!--<banner>-->
-
-    <section class="inicio" id="inicio">
-    </section>
-    <!--
-    <div style="display: flex; gap: 1rem; margin: 2rem 0; justify-content: center;">
-        <button id="btn-conectar" style="padding: 1rem 2rem; font-size: 1.2rem; cursor: pointer;">Conectar ao
-            Banco</button>
-    </div>
-    -->
-    <destaque>
-
+  <!-- Categorias em Destaque -->
     <section class="categorias-destaque" id="categorias-destaque">
         <h1 class="cabecalho">Categorias em <span>Destaque</span></h1>
         <div class="swiper categorias-slider">
-            <div class="swiper-wrapper">
-                <div class="swiper-slide box">
-                    <img src="image/produto1.png" alt="">
-                    <h3>Hortifruti</h3>
-                    <a href="#" class="btn-categorias">Ver Categoria</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto2.png" alt="">
-                    <h3>Açougue</h3>
-                    <a href="#" class="btn-categorias">Ver Categoria</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto3.png" alt="">
-                    <h3>Bebidas</h3>
-                    <a href="#" class="btn-categorias">Ver Categoria</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto1.png" alt="">
-                    <h3>Hortifruti</h3>
-                    <a href="#" class="btn-categorias">Ver Categoria</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto2.png" alt="">
-                    <h3>Açougue</h3>
-                    <a href="#" class="btn-categorias">Ver Categoria</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto3.png" alt="">
-                    <h3>Bebidas</h3>
-                    <a href="#" class="btn-categorias">Ver Categoria</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto1.png" alt="">
-                    <h3>Hortifruti</h3>
-                    <a href="#" class="btn-categorias">Ver Categoria</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto2.png" alt="">
-                    <h3>Açougue</h3>
-                    <a href="#" class="btn-categorias">Ver Categoria</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto3.png" alt="">
-                    <h3>Bebidas</h3>
-                    <a href="#" class="btn-categorias">Ver Categoria</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto1.png" alt="">
-                    <h3>Hortifruti</h3>
-                    <a href="#" class="btn-categorias">Ver Categoria</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto2.png" alt="">
-                    <h3>Açougue</h3>
-                    <a href="#" class="btn-categorias">Ver Categoria</a>
-                </div>
-                <div class="swiper-slide box">
-                    <img src="image/produto3.png" alt="">
-                    <h3>Bebidas</h3>
-                    <a href="#" class="btn-categorias">Ver Categoria</a>
-                </div>
-            </div>
+      <div class="swiper-wrapper" id="categorias-lista"></div>
             <div class="swiper-button-next"></div>
             <div class="swiper-button-prev"></div>
         </div>
     </section>
 
-    <!--<Produtos destaque>-->
-
+    <!-- Produtos em Destaque -->
     <section class="produtos-destaque" id="produtos-destaque">
         <h1 class="cabecalho">Produtos em <span>Destaque</span></h1>
         <div id="loader-destaque" style="display:none; justify-content:center; align-items:center; margin:2rem 0;">
@@ -153,235 +68,147 @@
         </div>
         <div class="swiper produto-slider">
             <div class="swiper-wrapper" id="destaque-lista"></div>
-            <script>
-// Carrega os 20 produtos em destaque da base
-const loaderDestaque = document.getElementById('loader-destaque');
-if (loaderDestaque) loaderDestaque.style.display = 'flex';
-fetch(apiUrl('/api/produtos?offset=0&limit=20'))
-    .then(res => res.json())
-    .then(data => {
-        const lista = document.getElementById('destaque-lista');
-        if (loaderDestaque) loaderDestaque.style.display = 'none';
-        if (data.success && data.produtos.length > 0) {
-            lista.innerHTML = data.produtos.map(prod => `
-                <div class="swiper-slide box" data-procod="${prod.procod}" style="background: #fff; box-shadow: 0 .1rem 1rem rgb(124, 124, 124); border-radius: .5rem; text-align: center; display: block; height: 25rem; width: 20rem; position: relative;">
-                    ${prod.imagemTipo && prod.imagem ? `<img src="data:image/${prod.imagemTipo};base64,${prod.imagem}" alt="${prod.nome}" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">` : `<img src="image/SEM-IMAGEM.png" alt="Sem imagem" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">`}
-                    <h1 style="font-size: 1.5rem; color: rgb(22, 87, 207);">${prod.nome}</h1>
-                    <div class="qty-selector" style="margin: 0.5rem 0; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
-                        <button class="qty-minus" type="button">-</button>
-                        <input type="number" class="qty-input" min="1" value="1" style="width: 40px; text-align: center; font-size: 1.2rem;">
-                        <button class="qty-plus" type="button">+</button>
-                    </div>
-                    <div class="box-footer">
-                        <div style="display: flex; align-items: baseline;">
-                            <span class="price">R$ ${(Number(prod.preco)).toFixed(2)}</span>
-                            <span class="und">/${prod.und}</span>
-                        </div>
-                        <button class="add-carrinho-btn"><i class="fas fa-shopping-cart"></i></button>
-                    </div>
-                </div>
-            `).join('');
-            // Executa o Swiper somente após renderizar os produtos
-            if (typeof Swiper !== 'undefined') {
-                setTimeout(function() {
-                    new Swiper(".produto-slider", {
-                        loop: true,
-                        spaceBetween: 20,
-                        navigation: {
-                            nextEl: '.swiper-button-next',
-                            prevEl: '.swiper-button-prev',
-                        },
-                        autoplay: {
-                            delay: 7500,
-                            disableOnInteraction: false,
-                        },
-                        breakpoints: {
-                            0: { slidesPerView: 2 },
-                            768: { slidesPerView: 3 },
-                            1020: { slidesPerView: 4 },
-                            1240: { slidesPerView: 5 },
-                        }
-                    });
-                }, 100);
-            }
-            // Adiciona eventos de quantidade e carrinho igual produtos.js
-            lista.querySelectorAll('.box').forEach(box => {
-                const minus = box.querySelector('.qty-minus');
-                const plus = box.querySelector('.qty-plus');
-                const input = box.querySelector('.qty-input');
-                minus.onclick = () => {
-                    let val = parseInt(input.value) || 1;
-                    if (val > 1) input.value = val - 1;
-                };
-                plus.onclick = () => {
-                    let val = parseInt(input.value) || 1;
-                    input.value = val + 1;
-                };
-                input.oninput = () => {
-                    if (input.value < 1) input.value = 1;
-                };
-                box.querySelector('.add-carrinho-btn').onclick = () => {
-                    const prodcod = box.getAttribute('data-procod');
-                    const prod = data.produtos.find(p => p.procod == prodcod);
-                    const qtd = parseInt(input.value) || 1;
-                    adicionarAoCarrinho(prod, qtd);
-                    // Mensagem de confirmação com fade out
-                    let msg = document.createElement('div');
-                    msg.textContent = 'ADICIONADO COM SUCESSO';
-                    msg.style.position = 'fixed';
-                    msg.style.top = '20px';
-                    msg.style.left = '50%';
-                    msg.style.transform = 'translateX(-50%)';
-                    msg.style.background = '#1657cf';
-                    msg.style.color = '#fff';
-                    msg.style.padding = '1rem 2rem';
-                    msg.style.borderRadius = '2rem';
-                    msg.style.fontSize = '1.4rem';
-                    msg.style.fontWeight = 'bold';
-                    msg.style.zIndex = '9999';
-                    msg.style.transition = 'opacity 0.5s';
-                    document.body.appendChild(msg);
-                    setTimeout(() => {
-                        msg.style.opacity = '0';
-                        setTimeout(() => { msg.remove(); }, 500);
-                    }, 1000);
-                };
-            });
-        } else {
-            lista.innerHTML = '<div>Nenhum produto encontrado.</div>';
-        }
-    })
-    .catch(() => {
-        document.getElementById('destaque-lista').innerHTML = '<div>Erro ao buscar produtos.</div>';
-    });
-
-// Função igual produtos.js
-function adicionarAoCarrinho(produto, qtd = 1) {
-    let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-    const idx = carrinho.findIndex(item => item.procod === produto.procod);
-    if (idx > -1) {
-        carrinho[idx].qtd += qtd;
-    } else {
-        const novoProduto = { ...produto, qtd };
-        carrinho.push(novoProduto);
-    }
-    localStorage.setItem('carrinho', JSON.stringify(carrinho));
-    if (typeof updateCartBadge === 'function') updateCartBadge();
-    window.dispatchEvent(new Event('storage'));
-}
-</script>
-            <!--SETAS-->
             <div class="swiper-button-next"></div>
             <div class="swiper-button-prev"></div>
         </div>
-
     </section>
 
-    <!--<footer>-->
     <footer>
         <p>&copy; 2025 Control Power. Todos os direitos reservados.</p>
     </footer>
 
-    <script src="js/env.js"></script>
-    <script src="js/script.js"></script>
-<script>
-// Atualiza o header do carrinho ao abrir a página
-window.addEventListener('DOMContentLoaded', function() {
-    if (typeof atualizarCarrinhoHeader === 'function') {
-        atualizarCarrinhoHeader();
-    }
-});
-// Atualiza o header do carrinho
-function atualizarCarrinhoHeader() {
-    let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
-    let shoppingCart = document.querySelector('.shopping-cart');
-    if (!shoppingCart) return;
-    shoppingCart.innerHTML = '';
-    let total = 0;
-    carrinho.slice(0, 3).forEach((item, idx) => {
-        let imgSrc = item.img || item.imagem || 'image/SEM-IMAGEM.png';
-        let precoNum = typeof item.preco === 'string' ? parseFloat(item.preco.replace(',', '.')) : Number(item.preco);
-        let subtotal = precoNum * (item.qtd || 1);
-        total += subtotal;
-        shoppingCart.innerHTML += `
-            <div class="cart-item">
-                <i class="fas fa-trash" data-procod="${item.procod}"></i>
-                <img src="${imgSrc}" alt="${item.nome}">
-                <div class="content">
-                    <h3>${item.nome}</h3>
-                    <div class="qty-selector" style="margin: 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
-                        <button class="qty-minus" type="button" data-idx="${idx}">-</button>
-                        <input type="number" class="qty-input" min="1" value="${item.qtd ? item.qtd : 1}" style="width: 40px; text-align: center; font-size: 1.2rem;">
-                        <button class="qty-plus" type="button" data-idx="${idx}">+</button>
-                    </div>
-                    <span class="price">R$ ${precoNum.toFixed(2)} ${item.und ? '| ' + item.und : ''}</span>
+    <!-- Script: carrega produtos em destaque e integra com carrinho -->
+    <script>
+    // Atualiza mini-carrinho ao abrir a página
+    window.addEventListener('DOMContentLoaded', function(){
+        if (typeof atualizarCarrinhoHeader === 'function') atualizarCarrinhoHeader();
+        if (typeof updateCartBadge === 'function') updateCartBadge();
+    });
+
+    // Carregar categorias da API
+      // Carregar categorias da API (imagem dinâmica: no momento usa SEM-IMAGEM)
+    (function carregarCategorias(){
+      const wrap = document.getElementById('categorias-lista');
+      if (!wrap) return;
+      fetch(apiUrl('/api/categorias'))
+        .then(r => r.json())
+        .then(data => {
+          if (!data.success || !Array.isArray(data.categorias)) return;
+          wrap.innerHTML = data.categorias.map(cat => {
+            const nome = String(cat.nome || '').trim();
+              const img = 'image/SEM-IMAGEM.png';
+            return `
+              <div class="swiper-slide box">
+                <img src="${img}" alt="${nome}">
+                <h3>${nome}</h3>
+                  <a href="produtos.html?codgrp=${encodeURIComponent(cat.codgrp)}&categoria=${encodeURIComponent(nome)}" class="btn-categorias">Ver Categoria</a>
+              </div>
+            `;
+          }).join('');
+          if (typeof Swiper !== 'undefined') {
+            setTimeout(function(){
+              new Swiper('.categorias-slider', {
+                loop: true,
+                spaceBetween: 20,
+                navigation: { nextEl: '.categorias-destaque .swiper-button-next', prevEl: '.categorias-destaque .swiper-button-prev' },
+                autoplay: { delay: 7500, disableOnInteraction: false },
+                breakpoints: { 0:{slidesPerView:2}, 768:{slidesPerView:3}, 1020:{slidesPerView:4}, 1240:{slidesPerView:5} }
+              });
+            }, 20);
+          }
+        })
+        .catch(() => {});
+    })();
+
+    const loaderDestaque = document.getElementById('loader-destaque');
+    if (loaderDestaque) loaderDestaque.style.display = 'flex';
+    fetch(apiUrl('/api/produtos?offset=0&limit=20'))
+      .then(res => res.json())
+      .then(data => {
+        const lista = document.getElementById('destaque-lista');
+        if (loaderDestaque) loaderDestaque.style.display = 'none';
+        if (data.success && data.produtos.length > 0) {
+          lista.innerHTML = data.produtos.map(prod => {
+            const hasPromo = !!(prod.promoAtivo && Number(prod.precoPromo) > 0 && Number(prod.precoPromo) < Number(prod.preco));
+            const precoBaseFmt = Number(prod.preco).toFixed(2);
+            const precoPromoFmt = hasPromo ? Number(prod.precoPromo).toFixed(2) : null;
+            return `
+            <div class="swiper-slide box" data-procod="${prod.procod}" style="background:#fff;box-shadow:0 .1rem 1rem rgb(124,124,124);border-radius:.5rem;text-align:center;display:block;height:25rem;width:20rem;position:relative;">
+              ${hasPromo ? `<div class='badge-desconto'>-${Number(prod.descontoPerc||0)}%</div>` : ''}
+              ${prod.imagemTipo && prod.imagem ? `<img src="data:image/${prod.imagemTipo};base64,${prod.imagem}" alt="${prod.nome}" style="height:50%;width:80%;object-fit:contain;margin-top:1rem;">` : `<img src="image/SEM-IMAGEM.png" alt="Sem imagem" style="height:50%;width:80%;object-fit:contain;margin-top:1rem;">`}
+              <h1 style="font-size:1.5rem;color:rgb(22,87,207);">${prod.nome}</h1>
+              <div class="qty-selector" style="margin:0.5rem 0;display:flex;justify-content:center;align-items:center;gap:0.5rem;">
+                <button class="qty-minus" type="button">-</button>
+                <input type="number" class="qty-input" min="1" value="1" style="width:40px;text-align:center;font-size:1.2rem;">
+                <button class="qty-plus" type="button">+</button>
+              </div>
+              <div class="box-footer">
+                <div style="display:flex;flex-direction:column;align-items:flex-start;">
+                  ${hasPromo ? `<div class='price-old'>R$ ${precoBaseFmt}</div>` : ''}
+                  <div style="display:flex;align-items:baseline;">
+                    <span class="price">R$ ${hasPromo ? precoPromoFmt : precoBaseFmt}</span>
+                    <span class="und">/${prod.und}</span>
+                  </div>
                 </div>
-            </div>
-        `;
-    });
-    let totalQtd = carrinho.reduce((acc, item) => acc + (item.qtd || 1), 0);
-    shoppingCart.innerHTML += `<div class="ver-mais"><a href="carrinho.html" class="btn-ver-mais">VER CARRINHO (${totalQtd})</a></div>`;
-    shoppingCart.innerHTML += `<div class="total"><h3>Total:<span class="price"> R$ ${total.toFixed(2)}</span></h3></div>`;
-    shoppingCart.innerHTML += `<a href="#" class="btn">Finalizar Compra</a>`;
+                <button class="add-carrinho-btn"><i class="fas fa-shopping-cart"></i></button>
+              </div>
+            </div>`;
+          }).join('');
 
-    // Eventos de quantidade no header
-    shoppingCart.querySelectorAll('.cart-item').forEach((div, idx) => {
-        const minus = div.querySelector('.qty-minus');
-        const plus = div.querySelector('.qty-plus');
-        const input = div.querySelector('.qty-input');
-        minus.onclick = () => {
-            let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-            if (carrinho[idx].qtd > 1) {
-                carrinho[idx].qtd -= 1;
-                localStorage.setItem('carrinho', JSON.stringify(carrinho));
-                atualizarCarrinhoHeader();
-                if (typeof updateCartBadge === 'function') updateCartBadge();
-                window.dispatchEvent(new Event('storage'));
-            }
-        };
-        plus.onclick = () => {
-            let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-            carrinho[idx].qtd += 1;
-            localStorage.setItem('carrinho', JSON.stringify(carrinho));
-            atualizarCarrinhoHeader();
-            if (typeof updateCartBadge === 'function') updateCartBadge();
-            window.dispatchEvent(new Event('storage'));
-        };
-        input.oninput = () => {
-            let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-            let val = parseInt(input.value) || 1;
-            if (val < 1) val = 1;
-            carrinho[idx].qtd = val;
-            localStorage.setItem('carrinho', JSON.stringify(carrinho));
-            atualizarCarrinhoHeader();
-            if (typeof updateCartBadge === 'function') updateCartBadge();
-            window.dispatchEvent(new Event('storage'));
-        };
-    });
-}
+          // Inicializa o Swiper após renderizar os cards
+          if (typeof Swiper !== 'undefined') {
+            setTimeout(function(){
+              new Swiper('.produto-slider', {
+                loop: true,
+                spaceBetween: 20,
+                navigation: { nextEl: '.produtos-destaque .swiper-button-next', prevEl: '.produtos-destaque .swiper-button-prev' },
+                autoplay: { delay: 7500, disableOnInteraction: false },
+                breakpoints: { 0:{slidesPerView:2}, 768:{slidesPerView:3}, 1020:{slidesPerView:4}, 1240:{slidesPerView:5} }
+              });
+            }, 50);
+          }
 
-// Atualiza ao abrir o carrinho
-document.querySelector('#cart-btn').addEventListener('click', atualizarCarrinhoHeader);
-window.addEventListener('storage', function() {
-    if (typeof atualizarCarrinhoHeader === 'function') {
-        atualizarCarrinhoHeader();
-    }
-});
-
-// Remove item do carrinho
-document.querySelector('.shopping-cart').addEventListener('click', function(e) {
-    if (e.target.classList.contains('fa-trash')) {
-        let procod = e.target.getAttribute('data-procod');
-        let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
-        let idx = carrinho.findIndex(item => item.procod === procod);
-        if (idx !== -1) {
-            carrinho.splice(idx, 1);
+          // Eventos de quantidade e adicionar ao carrinho
+          lista.querySelectorAll('.box').forEach(box => {
+            const minus = box.querySelector('.qty-minus');
+            const plus = box.querySelector('.qty-plus');
+            const input = box.querySelector('.qty-input');
+            minus.onclick = () => { let v = parseInt(input.value)||1; if (v>1) input.value = v-1; };
+            plus.onclick  = () => { let v = parseInt(input.value)||1; input.value = v+1; };
+            input.oninput  = () => { if (input.value < 1) input.value = 1; };
+            box.querySelector('.add-carrinho-btn').onclick = () => {
+              const procod = box.getAttribute('data-procod');
+              const prod = data.produtos.find(p => String(p.procod) === String(procod));
+              const qtd = parseInt(input.value) || 1;
+              const hasPromo = !!(prod.promoAtivo && Number(prod.precoPromo) > 0 && Number(prod.precoPromo) < Number(prod.preco));
+              const prodCarrinho = { ...prod, preco: hasPromo ? Number(prod.precoPromo) : Number(prod.preco) };
+              adicionarAoCarrinho(prodCarrinho, qtd);
+              // Feedback rápido
+              let msg = document.createElement('div');
+              msg.textContent = 'ADICIONADO COM SUCESSO';
+              msg.style = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1657cf;color:#fff;padding:1rem 2rem;border-radius:2rem;font-size:1.4rem;font-weight:bold;z-index:9999;transition:opacity .5s';
+              document.body.appendChild(msg);
+              setTimeout(()=>{ msg.style.opacity='0'; setTimeout(()=>msg.remove(),500); },1000);
+            };
+          });
+        } else {
+          lista.innerHTML = '<div>Nenhum produto encontrado.</div>';
         }
-        localStorage.setItem('carrinho', JSON.stringify(carrinho));
-        atualizarCarrinhoHeader();
+      })
+      .catch(() => {
+        document.getElementById('destaque-lista').innerHTML = '<div>Erro ao buscar produtos.</div>';
+      });
+
+    function adicionarAoCarrinho(produto, qtd = 1) {
+      let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+      const idx = carrinho.findIndex(item => String(item.procod) === String(produto.procod));
+      if (idx > -1) { carrinho[idx].qtd += qtd; }
+      else { carrinho.push({ ...produto, qtd }); }
+      localStorage.setItem('carrinho', JSON.stringify(carrinho));
+      if (typeof updateCartBadge === 'function') updateCartBadge();
+      window.dispatchEvent(new Event('storage'));
     }
-});
-</script>
+    </script>
 </body>
 
 </html>

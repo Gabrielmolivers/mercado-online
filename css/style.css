@@ -74,6 +74,27 @@
     margin-right: 2.2rem;
     white-space: nowrap;
 }
+/* Preço antigo (riscado) nas promoções */
+.price-old {
+    font-size: 1.2rem;
+    color: #888;
+    text-decoration: line-through;
+    line-height: 1.2;
+}
+/* Selo de desconto no topo do card */
+.badge-desconto {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: #e53935;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.2rem;
+    padding: .2rem .6rem;
+    border-radius: .4rem;
+    z-index: 5;
+    box-shadow: 0 2px 6px rgba(0,0,0,.2);
+}
 .add-carrinho-btn {
     position: static;
     margin-left: 1.2rem;
@@ -803,6 +824,40 @@ section {
     color: var(--blue);
     font-size: 1.5rem;
     text-decoration: underline;
+}
+
+/* Filtros da página de produtos */
+#filtros {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+#filtros .filtro-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+#filtros select {
+    padding: 0.5rem;
+    font-size: 1rem;
+    min-width: 180px;
+}
+@media (max-width: 600px) {
+    #filtros {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    #filtros .filtro-group {
+        justify-content: space-between;
+    }
+    #filtros select {
+        width: 100%;
+        font-size: 1.1rem;
+        min-width: 0;
+    }
 }
 
 /* media responsividade  */
