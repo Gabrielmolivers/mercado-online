@@ -366,5 +366,12 @@ window.addEventListener('storage', updateCartBadge);
     }, 300);
 })();
 
-
+// Botões do Footer
+document.querySelectorAll(".toggle-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const box = btn.closest(".box");
+    box.classList.toggle("active");
+    btn.textContent = box.classList.contains("active") ? "⬆" : "⬇";
+  });
+});
 
