@@ -190,7 +190,8 @@ router.get('/produtos', (req, res) => {
       finalizarResposta('Erro ao conectar ao banco');
       return;
     }
-    const sqlCompleto = 'SELECT PROCOD, DESCR, PRVENDA, IMAGEM, UND, CODGRP, NOMGRU, INPROMO, FIMPROMO, VALORPROMO FROM PRODUTOS';
+  // Corrige nome de coluna: INIPROMO (e não INPROMO)
+  const sqlCompleto = 'SELECT PROCOD, DESCR, PRVENDA, IMAGEM, UND, CODGRP, NOMGRU, INIPROMO, FIMPROMO, VALORPROMO FROM PRODUTOS';
     const sqlBasico   = 'SELECT PROCOD, DESCR, PRVENDA, IMAGEM, UND, CODGRP, NOMGRU FROM PRODUTOS';
 
     function executarProcessamento(result, temCamposPromo){
@@ -228,7 +229,8 @@ router.get('/produtos', (req, res) => {
         result.forEach(prod => {
           // Promoção (se disponível)
           const now = new Date();
-          const iniPromoDate = temCamposPromo ? toDate(prod.INPROMO) : null;
+          // Atenção: coluna chama-se INIPROMO
+          const iniPromoDate = temCamposPromo ? toDate(prod.INIPROMO) : null;
           const fimPromoDate = temCamposPromo ? toDate(prod.FIMPROMO) : null;
             const valorPromo = temCamposPromo && (prod.VALORPROMO !== null && prod.VALORPROMO !== undefined) ? toNumber(prod.VALORPROMO) : NaN;
             const precoBase = toNumber(prod.PRVENDA || 0);

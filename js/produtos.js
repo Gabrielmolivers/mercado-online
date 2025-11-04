@@ -76,19 +76,25 @@ function exibirProdutos(lista) {
         box.className = 'box';
         box.setAttribute('data-procod', prod.procod);
         box.style = 'background: #fff; box-shadow: 0 .1rem 1rem rgb(124, 124, 124); border-radius: .5rem; text-align: center; display: block; height: 25rem; width: 20rem; position:relative;';
-        // Fallback robusto: considera promo ativa se o backend marcar promoAtivo OU
-        // se houver precoPromo válido (< preco) e a data final não expirou
+        // Nova regra: promoção ativa SOMENTE se FIMPROMO > hoje; usa VALORPROMO como preço
         const now = new Date();
-        const fimOk = prod.fimpromo ? (new Date(prod.fimpromo) >= now) : false;
-        const iniOk = prod.inipromo ? (new Date(prod.inipromo) <= now) : true;
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const toDateOnly = (s) => {
+            if (!s) return null;
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) { const [Y,M,D]=s.split('-').map(Number); return new Date(Y, M-1, D); }
+            const m = String(s).match(/^(\d{2})[.\/-](\d{2})[.\/-](\d{4})$/);
+            if (m) return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
+            const d = new Date(s); return isNaN(d) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        };
+        const fimDate = toDateOnly(prod.fimpromo);
         const precoBaseNum = toNumber(prod.preco);
         const precoPromoNum = toNumber(prod.precoPromo);
-        const precoCond = (precoPromoNum > 0 && precoPromoNum < precoBaseNum);
-        const hasPromo = !!((prod.promoAtivo && precoCond) || (precoCond && fimOk && iniOk));
+        const isPromoActive = !!(fimDate && fimDate.getTime() > today.getTime() && !isNaN(precoPromoNum) && precoPromoNum > 0 && precoPromoNum < precoBaseNum);
+        const descontoPerc = isPromoActive && precoBaseNum > 0 ? Math.max(1, Math.min(99, Math.round((1 - (precoPromoNum / precoBaseNum)) * 100))) : 0;
         const precoBaseFmt = (!isNaN(precoBaseNum) ? precoBaseNum : 0).toFixed(2);
-        const precoPromoFmt = hasPromo ? (!isNaN(precoPromoNum) ? precoPromoNum : 0).toFixed(2) : null;
+        const precoPromoFmt = (!isNaN(precoPromoNum) ? precoPromoNum : 0).toFixed(2);
         box.innerHTML = `
-            ${hasPromo ? `<div class="badge-desconto">-${Number(prod.descontoPerc||0)}%</div>` : ''}
+            ${isPromoActive ? `<div class="badge-desconto">-${descontoPerc}%</div>` : ''}
             ${prod.imagemTipo && prod.imagem ? `<img src="data:image/${prod.imagemTipo};base64,${prod.imagem}" alt="${prod.nome}" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">` : `<img src="image/SEM-IMAGEM.png" alt="Sem imagem" style="height: 50%; width: 80%; object-fit: contain; margin-top: 1rem;">`}
             <h1 style="font-size: 1.5rem; color: rgb(22, 87, 207);">${prod.nome}</h1>
             <div class="qty-selector" style="margin: 0.5rem 0; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
@@ -98,8 +104,8 @@ function exibirProdutos(lista) {
             </div>
             <div class="box-footer">
                 <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                  ${hasPromo ? `<div class="price-old">R$ ${precoBaseFmt}</div>` : ''}
-                  <div class="price">R$ ${hasPromo ? precoPromoFmt : precoBaseFmt} <span class="und">/${prod.und}</span></div>
+                  ${isPromoActive ? `<div class="price-old">R$ ${precoBaseFmt}</div>` : ''}
+                  <div class="price">R$ ${isPromoActive ? precoPromoFmt : precoBaseFmt} <span class="und">/${prod.und}</span></div>
                 </div>
                 <button class="add-carrinho-btn"><i class="fas fa-shopping-cart"></i></button>
             </div>
@@ -127,13 +133,19 @@ function exibirProdutos(lista) {
             const prod = lista.find(p => p.procod == prodcod);
             const qtd = parseInt(input.value) || 1;
             const now = new Date();
-            const fimOk = prod.fimpromo ? (new Date(prod.fimpromo) >= now) : false;
-            const iniOk = prod.inipromo ? (new Date(prod.inipromo) <= now) : true;
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const toDateOnly = (s) => {
+                if (!s) return null;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(s)) { const [Y,M,D]=s.split('-').map(Number); return new Date(Y, M-1, D); }
+                const m = String(s).match(/^(\d{2})[.\/-](\d{2})[.\/-](\d{4})$/);
+                if (m) return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
+                const d = new Date(s); return isNaN(d) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
+            };
+            const fimDate = toDateOnly(prod.fimpromo);
             const precoBaseNum = toNumber(prod.preco);
             const precoPromoNum = toNumber(prod.precoPromo);
-            const precoCond = (precoPromoNum > 0 && precoPromoNum < precoBaseNum);
-            const hasPromo = !!((prod.promoAtivo && precoCond) || (precoCond && fimOk && iniOk));
-            const prodCarrinho = { ...prod, preco: hasPromo ? precoPromoNum : precoBaseNum };
+            const isPromoActive = !!(fimDate && fimDate.getTime() > today.getTime() && !isNaN(precoPromoNum) && precoPromoNum > 0 && precoPromoNum < precoBaseNum);
+            const prodCarrinho = { ...prod, preco: isPromoActive ? precoPromoNum : precoBaseNum };
             adicionarAoCarrinho(prodCarrinho, qtd);
             // Mensagem de confirmação com fade out
             let msg = document.createElement('div');
@@ -356,6 +368,9 @@ function adicionarAoCarrinho(produto, qtd = 1) {
     let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
     const idx = carrinho.findIndex(item => item.procod === produto.procod);
     if (idx > -1) {
+        // Atualiza o preço para o valor atual (pode ser promocional)
+        carrinho[idx].preco = produto.preco;
+        carrinho[idx].und = produto.und || carrinho[idx].und;
         carrinho[idx].qtd += qtd; // Soma a quantidade selecionada ao que já existe
     } else {
         // Cria um novo objeto para evitar mutação do produto original

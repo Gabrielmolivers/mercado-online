@@ -266,12 +266,17 @@ function atualizarCarrinhoHeader() {
     let shoppingCart = document.querySelector('.shopping-cart');
     if (!shoppingCart) return;
     shoppingCart.innerHTML = '';
-    let total = 0;
+    // Total deve considerar TODOS os itens do carrinho, não apenas os exibidos
+    const total = (carrinho || []).reduce((acc, item) => {
+        const precoNum = typeof item.preco === 'string' ? parseFloat(String(item.preco).replace(',', '.')) : Number(item.preco);
+        const qtd = (typeof item.qtd === 'number' ? item.qtd : 1);
+        const sub = (isNaN(precoNum) ? 0 : precoNum) * (isNaN(qtd) ? 1 : qtd);
+        return acc + sub;
+    }, 0);
         carrinho.slice(0, 3).forEach((item, idx) => {
             let imgSrc = item.img || item.imagem || 'image/SEM-IMAGEM.png';
             let precoNum = typeof item.preco === 'string' ? parseFloat(item.preco.replace(',', '.')) : Number(item.preco);
             let subtotal = precoNum * (item.qtd || 1);
-            total += subtotal;
             shoppingCart.innerHTML += `
                 <div class="cart-item">
                     <i class="fas fa-trash" data-procod="${item.procod}"></i>

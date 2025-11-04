@@ -188,6 +188,19 @@
       let numeroClienteMap = {};
       let currentPage = 1;
       const pageSize = 5;
+      // Helpers globais para data/hora (BRT)
+      const formatHoraBRT = (ymd, hm) => {
+        const dstr = `${ymd || ''}T${(hm || '00:00')}:00Z`; // assume UTC, converte para BRT na formatação
+        try {
+          const dt = new Date(dstr);
+          return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo' }).format(dt);
+        } catch { return hm || ''; }
+      };
+      const brtTimestamp = (ymd, hm) => {
+        const s = `${ymd || ''}T${(hm || '00:00')}:00-03:00`; // cria data com offset -03:00
+        const ts = Date.parse(s);
+        return isNaN(ts) ? 0 : ts;
+      };
       fetch(apiUrl(`/api/cliente/${usuario.id}/pedidos`))
         .then(r => r.json())
         .then(data => {
@@ -216,6 +229,7 @@
             if (m1) return `${m1[1]}:${m1[2]}`; // HH:MM
             return '';
           };
+          // (formatHoraBRT e brtTimestamp agora no escopo externo)
           pedidosAll = (data.pedidos || []).map(p => ({
             ...p,
             data: normDateISO(p.data),
@@ -224,9 +238,9 @@
           // Numeração: manter a listagem do mais recente para o mais antigo,
           // porém mostrar o "último número" (ou seja, o mais recente recebe N, depois N-1, ...)
           const descOrdered = pedidosAll.slice().sort((a,b) => {
-            const at = Date.parse(`${a.data||''}T${a.hora||'00:00'}`) || 0;
-            const bt = Date.parse(`${b.data||''}T${b.hora||'00:00'}`) || 0;
-            return bt - at; // mais recente primeiro
+            const at = brtTimestamp(a.data, a.hora);
+            const bt = brtTimestamp(b.data, b.hora);
+            return bt - at; // mais recente primeiro (BRT)
           });
           numeroClienteMap = {};
           const totalNum = descOrdered.length;
@@ -250,12 +264,9 @@
         if (m2) return `${m2[1]}/${m2[2]}/${m2[3]}`;
         return s;
       }
-      function formatHora(hms){
-        if (!hms) return '';
-        const s = String(hms);
-        const m = s.match(/(\d{2}):(\d{2})/);
-        if (m) return `${m[1]}:${m[2]}`;
-        return s;
+      // Agora a hora é sempre renderizada no fuso de Brasília (GMT-3)
+      function formatHoraBRT2(ymd, hm){
+        return formatHoraBRT(ymd, hm);
       }
 
       function renderPedidos(resetPage){
@@ -293,8 +304,8 @@
           const numCli = numeroClienteMap[String(p.idpedido)] || p.idpedido;
           div.innerHTML = `
             <div class="pedido-top">
-              <h3><span class="pedido-id">PEDIDO ${p.idpedido}</span> #${numCli}</h3>
-              <div class="pedido-meta">${formatDateBr(p.data)} às ${formatHora(p.hora)} · <span class="pill">${tipo}</span> · <span class="pill">${meio}</span></div>
+              <h3>#${numCli} <span class="pedido-id">PEDIDO ${p.idpedido}</span></h3>
+              <div class="pedido-meta">${formatDateBr(p.data)} às ${formatHoraBRT2(p.data, p.hora)} · <span class="pill">${tipo}</span> · <span class="pill">${meio}</span></div>
               <div class="pedido-total">Total: R$ ${Number(p.total).toFixed(2)}</div>
             </div>
             ${p.obs ? `<div style=\"margin-top:.4rem; color:#444;\">Obs: ${p.obs}</div>` : ''}

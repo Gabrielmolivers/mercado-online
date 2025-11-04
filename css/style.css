@@ -95,6 +95,10 @@
     z-index: 5;
     box-shadow: 0 2px 6px rgba(0,0,0,.2);
 }
+/* Card de promoção com borda azul */
+.promo-blue-card {
+    border: 2px solid var(--blue) !important;
+}
 .add-carrinho-btn {
     position: static;
     margin-left: 1.2rem;
