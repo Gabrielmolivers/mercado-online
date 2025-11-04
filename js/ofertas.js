@@ -37,17 +37,7 @@ function buscarOfertas() {
         const d = new Date(s);
         return isNaN(d) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
       };
-      // Diagnóstico: contagens brutas
-      const total = data.produtos.length;
-      const withPrecoPromo = data.produtos.filter(p => toNumber(p.precoPromo) > 0).length;
-      const withFimPromo = data.produtos.filter(p => !!p.fimpromo).length;
-      // Se nenhuma coluna de promo veio, destacar possível fallback no backend
-      if (withPrecoPromo === 0 && withFimPromo === 0) {
-        console.warn('Nenhuma coluna de promoção recebida do backend. Verifique se a API está retornando VALORPROMO/FIMPROMO.');
-      }
-      try {
-        console.info(`Diagnóstico promo (bruto): total=${total}, com VALORPROMO>0=${withPrecoPromo}, com FIMPROMO definido=${withFimPromo}`);
-      } catch(_) {}
+      // (logs de diagnóstico removidos)
       const onlyPromos = data.produtos.filter(p => {
         const fimDate = toDateOnly(p.fimpromo);
         const precoPromoNum = toNumber(p.precoPromo);
@@ -57,39 +47,11 @@ function buscarOfertas() {
       });
       // Ordena por nome (ou mantém) – sem percentuais
       onlyPromos.sort((a,b) => String(a.nome||'').localeCompare(String(b.nome||'')));
-      try {
-        console.groupCollapsed(`Promoções importadas com sucesso • ${onlyPromos.length} item(ns)`);
-        console.table(onlyPromos.map(p => ({
-          procod: p.procod,
-          nome: p.nome,
-          precoPromo: toNumber(p.precoPromo),
-          fimpromo: p.fimpromo,
-        })));
-        console.groupEnd();
-        // Se zerado, mostrar amostra dos 10 primeiros para depuração
-        if (onlyPromos.length === 0) {
-          const sample = data.produtos.slice(0, 10).map(p => {
-            const fimDate = p.fimpromo ? new Date(`${p.fimpromo}T23:59:59`) : null;
-            const precoPromoNum = toNumber(p.precoPromo);
-            return {
-              procod: p.procod,
-              nome: p.nome,
-              precoBase: toNumber(p.preco),
-              precoPromo: precoPromoNum,
-              fimpromo: p.fimpromo,
-              ativa: !!(fimDate && fimDate.getTime() > now.getTime() && !isNaN(precoPromoNum) && precoPromoNum > 0)
-            };
-          });
-          console.groupCollapsed('Diagnóstico promo (amostra até 10 itens)');
-          console.table(sample);
-          console.groupEnd();
-        }
-      } catch(_) {}
+      // (logs de diagnóstico removidos)
       return onlyPromos;
     })
-    .catch((err) => { 
+    .catch(() => { 
       if (loader) loader.style.display = 'none'; 
-      console.error('Falha ao importar promoções:', err);
       return []; 
     });
 }

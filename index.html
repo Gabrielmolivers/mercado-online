@@ -176,18 +176,7 @@
           });
           lista.innerHTML = cardsHTML.join('');
 
-          // Log das promoções importadas (destaques)
-          try {
-            const now2 = new Date();
-            const promoItens = data.produtos.filter(p => {
-              const f = p.fimpromo ? new Date(`${p.fimpromo}T23:59:59`) : null;
-              const vp = toNumber(p.precoPromo);
-              return !!(f && f.getTime() > now2.getTime() && !isNaN(vp) && vp > 0);
-            });
-            console.groupCollapsed(`Promoções (destaques) importadas com sucesso • ${promoItens.length} item(ns)`);
-            console.table(promoItens.map(p => ({ procod: p.procod, nome: p.nome, precoPromo: toNumber(p.precoPromo), fimpromo: p.fimpromo })));
-            console.groupEnd();
-          } catch(_) {}
+          // (logs de depuração removidos)
 
           // Inicializa o Swiper após renderizar os cards
           if (typeof Swiper !== 'undefined') {
