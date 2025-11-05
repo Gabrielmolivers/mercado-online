@@ -1051,6 +1051,163 @@ section {
     margin: 0;
 }
 
+/* FOOTER - RODAPÉ */
+.footer {
+    background: var(--blue);
+}
+
+/* FOOTER - ESPAÇAMENTO ENTRE UM TÓPICO E OUTRO */
+.footer .box-container {
+    border: 0px solid;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 2rem 2rem;
+    width: 100%;
+    box-sizing: boder-box;
+    justify-content: start;
+}
+
+/* FOOTER - ESTILIZAÇÃO DOS TÓPICOS */
+.footer .box-container .box h3 {
+    font-size: 15px;
+    color: #fff;
+    padding: 1rem 0;
+}
+
+/* FOOTER - ÍCONES DOS TÓPICOS */
+.footer .box-container .box h3 i {
+    color: #fff;
+}
+
+/* FOOTER - LINKS DOS TÓPICOS */
+.footer .box-container .box .links {
+    display: block;
+    font-size: 14px;
+    color: #fff;
+    padding: 2px 0;
+}
+
+/* FOOTER - ÍCONES DOS LINKS */
+.footer .box-container .box .links i {
+    color: #fff;
+    padding-right: .5rem;
+}
+
+/* FOOTER - PARÁGRAFOS */
+.footer .box-container .box p {
+    line-height: 20px;
+    font-size: 14px;
+    color: #fff;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* FOOTER - REDES SOCIAIS */
+.footer .box-container .box .share {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.footer .box-container .box .share a {
+    border: 1px solid;
+    height: 4rem;
+    width: 4rem;
+    line-height: 4rem;
+    border-radius: .5rem;
+    font-size: 22px;
+    color: var(--blue);
+    margin-left: .2rem;
+    background: #eee;
+    text-align: center;
+}
+
+/* FOOTER - IMAGENS DE APLICATIVOS */
+.footer .box .app img {
+    width: 120px;
+    height: 45px;
+    object-fit: contain;
+}
+
+/* FOOTER - TEXTO AMPLO (LINHA EXTRA DE CONTEÚDO) */
+.footer .box .wide-text {
+    line-height: 20px;
+    font-size: 14px;
+    color: #fff;
+    padding: 0;
+    padding-top: 30px;
+    margin: 0;
+    text-align: left;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Estrutura do header e botão */
+.section-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Botão seta */
+.toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    display: none;
+}
+
+/* Mostra o botão e controla o conteúdo apenas no mobile */
+@media (max-width: 768px) {
+    .toggle-btn {
+        display: inline;
+    }
+    .box-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease; /* animação suave */
+    }
+  .box.active .box-content {
+    max-height: 500px;
+  }
+}
+
+/* FOOTER - LINHA DIVISÓRIA ENTRE OS TÓPICOS (APENAS NO MOBILE) */
+@media (max-width: 768px) {
+    .footer .box-container .box {
+        border-bottom: 1px solid;
+        color: #fff;
+        padding-bottom: 0; /* diminui a distância entre o conteúdo e a linha */
+        margin-bottom: 0; /* remove qualquer espaço extra abaixo */
+    }
+}
+
+/* FOOTER BOTTOM - DIREITOS DA CONTROL*/
+.footer-bottom {
+    width: 100%;
+    background: #111;
+    text-align: center;
+    font-size: 1rem;
+    color: #bbb;
+    margin-top: 0;
+    display: block;
+    clear: both;
+}
+@media (max-width: 800px) {
+    .footer-container {
+        flex-direction: column;
+        align-items: left;
+    }
+    .footer-section {
+        width: 100%;
+        text-align: left;
 /* Mobile promo visibility: ensure discount badge and old price stand out */
 @media (max-width: 600px) {
     .badge-desconto {
