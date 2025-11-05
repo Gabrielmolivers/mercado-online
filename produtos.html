@@ -65,9 +65,9 @@
         <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
         <nav class="navbar">
             <a href="maisvendidos" style="text-decoration: line-through;">Mais Vendidos</a>
-            <a href="ofertas" style="text-decoration: line-through;">Ofertas</a>
+            <a href="ofertas.html">Ofertas</a>
             <a href="produtos.html">Produtos</a>
-            <a href="departamentos" style="text-decoration: line-through;">Departamentos</a>
+            <a href="departamentos.html">Departamentos</a>
             <a href="contato" style="text-decoration: line-through;">Contato</a>
         </nav>
 
@@ -102,13 +102,21 @@
     </header>
     <section class="produtos-section">
         <h2>Produtos</h2>
-        <div style="margin-bottom: 1rem; text-align: right;">
-            <label for="ordenar-select" style="font-weight: bold; margin-right: 0.5rem;">Ordenar por:</label>
-            <select id="ordenar-select" style="padding: 0.5rem; font-size: 1rem;">
+        <div id="filtros" style="margin-bottom: 1rem;">
+            <div class="filtro-group">
+                <label for="categoria-select" style="font-weight: bold;">Categoria:</label>
+                <select id="categoria-select">
+                    <option value="">Todas</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+            <label for="ordenar-select" style="font-weight: bold;">Ordenar por:</label>
+            <select id="ordenar-select">
                 <option value="padrao">Padrão</option>
                 <option value="menor">Menor Valor</option>
                 <option value="maior">Maior Valor</option>
             </select>
+            </div>
         </div>
         <div id="loader" style="display:none; justify-content:center; align-items:center; margin:2rem 0;">
             <div class="spinner"></div>
@@ -124,40 +132,9 @@
     <script src="js/produtos.js"></script>
 
 <script>
-// Carrinho: Adiciona evento aos botões de adicionar ao carrinho
-// Removido o evento global que sempre soma +1 ao carrinho
-// O controle de quantidade agora é feito pelo produtos.js
-
-// Atualiza o header do carrinho ao adicionar produto
-window.addEventListener('storage', function() {
-    if (typeof atualizarCarrinhoHeader === 'function') {
-        atualizarCarrinhoHeader();
-    }
-});
-
-// ...existing code...
-
-// Atualiza o header do carrinho ao abrir
-document.querySelector('#cart-btn').addEventListener('click', function() {
-    if (typeof atualizarCarrinhoHeader === 'function') {
-        atualizarCarrinhoHeader();
-    }
-});
-
-// Remove item do carrinho (igual ao index.html)
-document.querySelector('.shopping-cart').addEventListener('click', function(e) {
-    if (e.target.classList.contains('fa-trash')) {
-        let procod = e.target.getAttribute('data-procod');
-        let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
-        let idx = carrinho.findIndex(item => item.procod === procod);
-        if (idx !== -1) {
-            carrinho.splice(idx, 1);
-            localStorage.setItem('carrinho', JSON.stringify(carrinho));
-            atualizarCarrinhoHeader();
-            if (typeof updateCartBadge === 'function') updateCartBadge();
-            window.dispatchEvent(new Event('storage'));
-        }
-    }
+// Usa a lógica centralizada do js/script.js para o mini-carrinho
+window.addEventListener('DOMContentLoaded', function(){
+  if (typeof atualizarCarrinhoHeader === 'function') atualizarCarrinhoHeader();
 });
 </script>
     <script>

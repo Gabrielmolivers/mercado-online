@@ -14,9 +14,9 @@
     <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
     <nav class="navbar">
         <a href="maisvendidos" style="text-decoration: line-through;">Mais Vendidos</a>
-        <a href="ofertas" style="text-decoration: line-through;">Ofertas</a>
+    <a href="ofertas.html">Ofertas</a>
         <a href="produtos.html">Produtos</a>
-        <a href="departamentos" style="text-decoration: line-through;">Departamentos</a>
+    <a href="departamentos.html">Departamentos</a>
         <a href="contato" style="text-decoration: line-through;">Contato</a>
     </nav>
 
@@ -74,76 +74,17 @@
 <script src="js/env.js"></script>
 <script src="js/config.js"></script>
 <script src="js/cadastro.js"></script>
-
 <script>
-        // Atualiza o header do carrinho com botões de quantidade
-        function atualizarCarrinhoHeader() {
-            let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
-            let shoppingCart = document.querySelector('.shopping-cart');
-            if (!shoppingCart) return;
-            shoppingCart.innerHTML = '';
-            let total = 0;
-            carrinho.slice(0, 3).forEach((item, idx) => {
-                let imgSrc = item.img || item.imagem || 'image/SEM-IMAGEM.png';
-                let precoNum = typeof item.preco === 'string' ? parseFloat(item.preco.replace(',', '.')) : Number(item.preco);
-                let subtotal = precoNum * (item.qtd || 1);
-                total += subtotal;
-                shoppingCart.innerHTML += `
-                    <div class="cart-item">
-                        <i class="fas fa-trash" data-procod="${item.procod}"></i>
-                        <img src="${imgSrc}" alt="${item.nome}">
-                        <div class="content">
-                            <h3>${item.nome}</h3>
-                            <div class="qty-selector" style="margin: 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
-                                <button class="qty-minus" type="button" data-idx="${idx}">-</button>
-                                <input type="number" class="qty-input" min="1" value="${item.qtd || 1}" style="width: 40px; text-align: center; font-size: 1.2rem;">
-                                <button class="qty-plus" type="button" data-idx="${idx}">+</button>
-                            </div>
-                            <span class="price">R$ ${precoNum.toFixed(2)} ${item.und ? '| ' + item.und : ''}</span>
-                        </div>
-                    </div>
-                `;
-            });
-            let totalQtd = carrinho.reduce((acc, item) => acc + (item.qtd || 1), 0);
-            shoppingCart.innerHTML += `<div class=\"ver-mais\"><a href=\"carrinho.html\" class=\"btn-ver-mais\">VER CARRINHO (${totalQtd})</a></div>`;
-            shoppingCart.innerHTML += `<div class=\"total\"><h3>Total:<span class=\"price\"> R$ ${total.toFixed(2)}</span></h3></div>`;
-            shoppingCart.innerHTML += `<a href=\"#\" class=\"btn\">Finalizar Compra</a>`;
-
-            // Eventos de quantidade no header
-            shoppingCart.querySelectorAll('.cart-item').forEach((div, idx) => {
-                const minus = div.querySelector('.qty-minus');
-                const plus = div.querySelector('.qty-plus');
-                const input = div.querySelector('.qty-input');
-                minus.onclick = () => {
-                    let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-                    // Remover produto completamente ao clicar no botão de remover
-                    carrinho.splice(idx, 1);
-                    localStorage.setItem('carrinho', JSON.stringify(carrinho));
-                    atualizarCarrinhoHeader();
-                    if (typeof updateCartBadge === 'function') updateCartBadge();
-                    window.dispatchEvent(new Event('storage'));
-                };
-                plus.onclick = () => {
-                    let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-                    carrinho[idx].qtd += 1;
-                    localStorage.setItem('carrinho', JSON.stringify(carrinho));
-                    atualizarCarrinhoHeader();
-                    if (typeof updateCartBadge === 'function') updateCartBadge();
-                    window.dispatchEvent(new Event('storage'));
-                };
-                input.oninput = () => {
-                    let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-                    let val = parseInt(input.value) || 1;
-                    if (val < 1) val = 1;
-                    carrinho[idx].qtd = val;
-                    localStorage.setItem('carrinho', JSON.stringify(carrinho));
-                    atualizarCarrinhoHeader();
-                    if (typeof updateCartBadge === 'function') updateCartBadge();
-                    window.dispatchEvent(new Event('storage'));
-                };
-            });
-        }
-        </script>
+// Usa a lógica centralizada do js/script.js para o mini-carrinho
+window.addEventListener('DOMContentLoaded', function(){
+  if (typeof atualizarCarrinhoHeader === 'function') atualizarCarrinhoHeader();
+  if (typeof updateCartBadge === 'function') updateCartBadge();
+});
+window.addEventListener('storage', function(){
+  if (typeof atualizarCarrinhoHeader === 'function') atualizarCarrinhoHeader();
+  if (typeof updateCartBadge === 'function') updateCartBadge();
+});
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.add-carrinho-btn').forEach(btn => {

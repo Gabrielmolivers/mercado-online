@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout - Mercado Online</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" type="image/svg+xml" href="image/favicon.svg" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    .checkout-container { max-width: 900px; margin: 2rem auto; padding: 1rem; }
+    .resumo { background: #fff; border-radius: .5rem; box-shadow: 0 .1rem 1rem rgba(0,0,0,.15); padding: 1rem; }
+    .resumo h2 { margin-top: 0; }
+    .resumo .linha { display: flex; justify-content: space-between; padding: .5rem 0; border-bottom: 1px solid #eee; }
+    .resumo .linha:last-child { border-bottom: 0; }
+    .total { font-weight: bold; font-size: 1.2rem; color: var(--blue); }
+    .acoes { display: flex; gap: 1rem; margin-top: 1rem; }
+  .entrega-card { margin-top: 1rem; background:#f9fbff; border:1px solid #e3eefc; border-radius:.5rem; padding:1rem; display:none; }
+    .entrega-card h3 { margin:0 0 .5rem 0; color: var(--blue); font-size:1.6rem; }
+    .grid-3 { display:grid; grid-template-columns: 2fr 2fr 1fr; gap: .8rem; }
+    .grid-2 { display:grid; grid-template-columns: 2fr 1fr; gap: .8rem; margin-top:.8rem; }
+    .entrega-card label { font-size:1.2rem; font-weight:600; color:#333; }
+    .entrega-card input { width:100%; padding:.6rem .8rem; border:1px solid #ccc; border-radius:.4rem; font-size:1.2rem; background:#fff; }
+  .entrega-card input.invalid { border-color:#d32f2f; box-shadow:0 0 0 3px rgba(211,47,47,0.15); }
+    /* Selects com estilo de botão azul */
+    #entrega-select, #pagto-select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background: var(--blue);
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.4rem;
+      padding: .8rem 2.6rem .8rem 1rem;
+      border: none;
+      border-radius: .5rem;
+      cursor: pointer;
+      box-shadow: 0 .1rem .6rem rgba(0,0,0,.15);
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='white'><path d='M7 10l5 5 5-5z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right .8rem center;
+      background-size: 14px;
+    }
+    #entrega-select:hover, #pagto-select:hover { background:#130f40; }
+    #entrega-select:focus, #pagto-select:focus { outline: 3px solid rgba(22,87,207,.25); }
+    @media (max-width: 600px){
+      #entrega-select, #pagto-select { width: 100%; }
+    }
+    @media (max-width: 600px){
+      .grid-3 { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .resumo .linha { flex-direction: column; align-items: flex-start; gap:.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
+    <nav class="navbar">
+      <a href="produtos.html">Produtos</a>
+      <a href="carrinho.html">Carrinho</a>
+    </nav>
+    <div class="icons">
+      <div id="menu-btn" class="fas fa-bars"></div>
+    </div>
+  </header>
+
+  <main class="checkout-container">
+    <h1>Checkout</h1>
+    <div id="aviso"></div>
+    <section class="resumo">
+      <h2>Resumo do Pedido</h2>
+      <div id="itens"></div>
+      <div class="linha total"><span>Total</span><span id="total">R$ 0,00</span></div>
+      <div class="linha" style="border-bottom:0; display:flex; gap:1rem; align-items:center;">
+        <label for="entrega-select" style="font-weight:bold;">Forma de entrega:</label>
+        <select id="entrega-select">
+          <option value="1" selected>Retirar na loja</option>
+          <option value="2">Entregar</option>
+        </select>
+      </div>
+      <div id="endereco-entrega" class="entrega-card">
+        <h3>Endereço da entrega</h3>
+        <div class="grid-3">
+          <div>
+            <label for="entrega-endereco">Endereço</label>
+            <input id="entrega-endereco" type="text" placeholder="Rua, Av..." />
+          </div>
+          <div>
+            <label for="entrega-bairro">Bairro</label>
+            <input id="entrega-bairro" type="text" placeholder="Bairro" />
+          </div>
+          <div>
+            <label for="entrega-numero">Número</label>
+            <input id="entrega-numero" type="text" placeholder="Nº" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label for="entrega-complemento">Complemento (opcional)</label>
+            <input id="entrega-complemento" type="text" placeholder="Apto, bloco, referência" />
+          </div>
+        </div>
+      </div>
+      <div class="linha" style="border-bottom:0; display:flex; gap:1rem; align-items:center;">
+        <label for="pagto-select" style="font-weight:bold;">Forma de pagamento:</label>
+        <select id="pagto-select">
+          <option value="D">Dinheiro</option>
+          <option value="C">Cartão</option>
+          <option value="P">PIX</option>
+        </select>
+      </div>
+      <div class="linha" style="flex-direction: column; align-items: stretch; gap:.5rem; border-bottom:0;">
+        <label for="obs-pedido" style="font-weight:bold;">Observações do pedido</label>
+        <textarea id="obs-pedido" rows="3" style="width:100%; padding:.6rem .8rem; border:1px solid #ccc; border-radius:.4rem; font-size:1.2rem; resize: vertical;" placeholder="Ex.: entregar após as 18h, interfone com o porteiro, troco para R$ 50,00..."></textarea>
+      </div>
+      <div class="acoes">
+        <a class="btn" href="carrinho.html">Voltar ao Carrinho</a>
+        <button class="btn" id="confirmar">Confirmar Pedido</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Control Power. Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="js/env.js"></script>
+  <script src="js/config.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Exigir login
+      const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
+      if (!usuario || !usuario.id) {
+        alert('Você precisa estar logado para continuar.');
+        window.location.href = 'cadastro.html';
+        return;
+      }
+
+      // Carregar carrinho
+      const carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
+      const itensEl = document.getElementById('itens');
+      const totalEl = document.getElementById('total');
+      if (!carrinho.length) {
+        itensEl.innerHTML = '<p>Seu carrinho está vazio.</p>';
+        return;
+      }
+      let total = 0;
+      itensEl.innerHTML = '';
+      carrinho.forEach(item => {
+        const preco = typeof item.preco === 'string' ? parseFloat(item.preco.replace(',', '.')) : Number(item.preco);
+        const qtd = item.qtd || 1;
+        const sub = preco * qtd;
+        total += sub;
+        const div = document.createElement('div');
+        div.className = 'linha';
+        div.innerHTML = `<span>${item.nome} x${qtd}</span><span>R$ ${sub.toFixed(2)}</span>`;
+        itensEl.appendChild(div);
+      });
+      totalEl.textContent = `R$ ${total.toFixed(2)}`;
+
+      // Buscar dados do cliente para pré-preencher endereço de entrega
+      let clienteBase = null;
+      fetch(apiUrl(`/api/cliente/${usuario.id}`))
+        .then(r => r.json())
+        .then(cli => {
+          if (cli.success && cli.cliente) {
+            clienteBase = cli.cliente;
+          }
+        })
+        .catch(()=>{});
+
+      // Mostrar/ocultar endereço de entrega com base na seleção
+      const entregaSelect = document.getElementById('entrega-select');
+      const boxEntrega = document.getElementById('endereco-entrega');
+      function aplicarEntregaUI(){
+        if (entregaSelect.value === '2') { // Entregar
+          boxEntrega.style.display = 'block';
+          // Pré-preenche com endereço do cadastro
+          const end = document.getElementById('entrega-endereco');
+          const bairro = document.getElementById('entrega-bairro');
+          const numero = document.getElementById('entrega-numero');
+          if (clienteBase) {
+            end.value = clienteBase.ENDERECO || clienteBase.endereco || end.value || '';
+            bairro.value = clienteBase.BAIRRO || clienteBase.bairro || bairro.value || '';
+            numero.value = clienteBase.NUMERO || clienteBase.numero || numero.value || '';
+          }
+        } else {
+          boxEntrega.style.display = 'none';
+          // limpa marcações de erro quando não for entrega
+          document.getElementById('entrega-endereco')?.classList.remove('invalid');
+          document.getElementById('entrega-bairro')?.classList.remove('invalid');
+          document.getElementById('entrega-numero')?.classList.remove('invalid');
+        }
+      }
+      entregaSelect.addEventListener('change', aplicarEntregaUI);
+      aplicarEntregaUI();
+
+      // Remove destaque de erro ao digitar
+      ['entrega-endereco','entrega-bairro','entrega-numero'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', () => el.classList.remove('invalid'));
+      });
+
+      // Confirmar pedido => buscar dados do cliente e enviar para API
+      document.getElementById('confirmar').addEventListener('click', () => {
+        const itens = JSON.parse(localStorage.getItem('carrinho') || '[]');
+        if (!itens.length) {
+          alert('Seu carrinho está vazio.');
+          return;
+        }
+        const sel = document.getElementById('pagto-select');
+        const meioPagto = sel ? sel.value : 'D'; // D=Dinheiro, C=Cartão, P=PIX
+        const tipoEntrega = (document.getElementById('entrega-select')?.value) || '1';
+        // Se for entrega, exigir endereço/bairro/número preenchidos
+        if (tipoEntrega === '2') {
+          const endEl = document.getElementById('entrega-endereco');
+          const baiEl = document.getElementById('entrega-bairro');
+          const numEl = document.getElementById('entrega-numero');
+          const end = (endEl?.value || '').trim();
+          const bai = (baiEl?.value || '').trim();
+          const num = (numEl?.value || '').trim();
+          // limpa estados anteriores
+          endEl?.classList.remove('invalid');
+          baiEl?.classList.remove('invalid');
+          numEl?.classList.remove('invalid');
+          let faltando = [];
+          if (!end) { faltando.push('Endereço'); endEl?.classList.add('invalid'); }
+          if (!bai) { faltando.push('Bairro'); baiEl?.classList.add('invalid'); }
+          if (!num) { faltando.push('Número'); numEl?.classList.add('invalid'); }
+          if (faltando.length) {
+            alert('Para entrega em domicílio, preencha: ' + faltando.join(', ') + '.');
+            // Foca no primeiro campo faltante
+            const first = faltando[0];
+            if (first === 'Endereço') endEl?.focus();
+            else if (first === 'Bairro') baiEl?.focus();
+            else if (first === 'Número') numEl?.focus();
+            boxEntrega?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+          }
+        }
+        fetch(apiUrl(`/api/cliente/${usuario.id}`))
+          .then(r => r.json())
+          .then(cli => {
+            if (!cli.success || !cli.cliente) {
+              alert('Não foi possível obter os dados do cliente.');
+              return;
+            }
+            const cliente = {
+              id: usuario.id,
+              nome: usuario.nome,
+              endereco: (tipoEntrega === '2') ? (document.getElementById('entrega-endereco').value || '') : '',
+              bairro: (tipoEntrega === '2') ? (document.getElementById('entrega-bairro').value || '') : '',
+              numero: (tipoEntrega === '2') ? (document.getElementById('entrega-numero').value || '') : '',
+              meio_pagto: meioPagto,
+              tipo_entrega: parseInt(tipoEntrega, 10),
+              obs: (document.getElementById('obs-pedido')?.value || '').slice(0, 500)
+            };
+            fetch(apiUrl('/api/finalizar-compra'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ itens, cliente })
+            })
+            .then(r => r.json())
+            .then(data => {
+              if (data.success) {
+                alert('Pedido confirmado com sucesso!');
+                localStorage.removeItem('carrinho');
+                window.location.href = 'index.html';
+              } else {
+                alert('Erro ao confirmar pedido: ' + (data.error || 'Tente novamente.'));
+              }
+            })
+            .catch(() => alert('Erro ao conectar ao servidor.'));
+          })
+          .catch(() => alert('Erro ao buscar dados do cliente.'));
+      });
+    });
+  </script>
+</body>
+</html>

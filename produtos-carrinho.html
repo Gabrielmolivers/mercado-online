@@ -30,9 +30,9 @@
         <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
         <nav class="navbar">
             <a href="maisvendidos" style="text-decoration: line-through;">Mais Vendidos</a>
-            <a href="ofertas" style="text-decoration: line-through;">Ofertas</a>
+            <a href="ofertas.html">Ofertas</a>
             <a href="produtos.html">Produtos</a>
-            <a href="departamentos" style="text-decoration: line-through;">Departamentos</a>
+            <a href="departamentos.html">Departamentos</a>
             <a href="contato" style="text-decoration: line-through;">Contato</a>
         </nav>
         <div class="icons">
@@ -45,39 +45,7 @@
             <input type="text" id="search-box" placeholder="Buscar produtos...">
             <label for="search-box" class="fas fa-search"></label>
         </form>
-        <div class="shopping-cart">
-            <div class="cart-item">
-                <i class="fas fa-trash"></i>
-                <img src="image/produto1.png" alt="">
-                <div class="content">
-                    <h3>Melancia</h3>
-                    <span class="price">R$ 5,99 kg | </span>
-                    <span class="qtd">Qtde: 2,00 kg</span>
-                </div>
-            </div>
-            <div class="cart-item">
-                <i class="fas fa-trash"></i>
-                <img src="image/produto2.png" alt="">
-                <div class="content">
-                    <h3>Picanha</h3>
-                    <span class="price">R$ 45,99 kg | </span>
-                    <span class="qtd">Qtde: 1,00 kg</span>
-                </div>
-            </div>
-            <div class="cart-item">
-                <i class="fas fa-trash"></i>
-                <img src="image/produto3.png" alt="">
-                <div class="content">
-                    <h3>Coca-cola 2L</h3>
-                    <span class="price">R$ 9,99 und | </span>
-                    <span class="qtd">Qtde: 1 und</span>
-                </div>
-            </div>
-            <div class="total">
-                <h3>Total:<span class="price"> R$ 67,96</span></h3>
-            </div>
-            <a href="#" class="btn">Finalizar Compra</a>
-        </div>
+        <div class="shopping-cart"></div>
         <form action="#" class="login-form">
             <h3>Seja Bem-Vindo(a)!</h3>
             <p>Insira seus dados nos campos abaixo para fazer login.</p>
@@ -172,6 +140,13 @@
         });
     });
     </script>
-    <script src="js/produtos-carrinho.js"></script>
+        <script src="js/script.js"></script>
+        <script src="js/produtos-carrinho.js"></script>
+        <script>
+            // Inicializa o mini-carrinho do header usando a lógica centralizada
+            window.addEventListener('DOMContentLoaded', function(){
+                if (typeof atualizarCarrinhoHeader === 'function') atualizarCarrinhoHeader();
+            });
+        </script>
 </body>
 </html>

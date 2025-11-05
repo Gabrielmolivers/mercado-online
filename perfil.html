@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Perfil</title>
+  <link rel="icon" type="image/svg+xml" href="image/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="js/env.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/script.js" defer></script>
+  <style>
+    .perfil-container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+    .card { background:#fff; border-radius:.6rem; box-shadow:0 .1rem 1rem rgba(0,0,0,.1); padding:1.2rem; margin-bottom:1.4rem; }
+    .card h2 { margin:0 0 .8rem 0; font-size:2rem; color:var(--black); }
+    .dados-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:1rem; }
+    .campo { display:flex; flex-direction:column; gap:.2rem; }
+    .campo label { font-weight:600; color:#333; font-size:1.2rem; }
+    .campo span { font-size:1.4rem; color:#444; background:#f7f9fc; border:1px solid #e8eef7; border-radius:.5rem; padding:.6rem .8rem; }
+    .dados-editar { display:none; margin-top:1rem; }
+    .dados-editar .campo input { width:100%; padding:.6rem .8rem; border:1px solid #cfd8ea; border-radius:.5rem; font-size:1.3rem; background:#fff; }
+    .dados-acoes { margin-top:1rem; display:flex; gap:.8rem; }
+    @media(max-width: 700px){ .dados-grid { grid-template-columns: 1fr; } }
+  .filtros { display:flex; flex-wrap:wrap; gap:.8rem; margin:.6rem 0 1rem; align-items:center; }
+  .filtros label { font-size:1.2rem; font-weight:600; color:#333; }
+  .filtros select { appearance:none; background:#fff; border:1px solid #d9e4f5; padding:.6rem .9rem; border-radius:.5rem; font-size:1.3rem; }
+  .pedido { border:1px solid #e8eef7; border-radius:.6rem; padding:1rem; margin:.8rem 0; background:#fbfdff; }
+    .pedido-top { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+    .pedido-top h3 { margin:0; font-size:1.6rem; color:var(--blue); }
+    .pedido-meta { color:#666; font-size:1.2rem; }
+    .pedido-total { font-weight:bold; color:var(--blue); }
+  .pedido-id { color:#888; font-size:1.2rem; margin-right:.6rem; font-weight:600; }
+    .pedido-acoes { display:flex; gap:.6rem; }
+    .pedido-itens { display:none; margin-top:.8rem; }
+    .pedido-itens table { width:100%; border-collapse:collapse; }
+    .pedido-itens th, .pedido-itens td { border-bottom:1px solid #eee; text-align:left; padding:.5rem; font-size:1.3rem; }
+    .pill { display:inline-block; background:#e3f2fd; color:#1a4fa3; padding:.2rem .6rem; border-radius:999px; font-size:1.1rem; font-weight:600; }
+    .paginacao { display:flex; gap:.4rem; justify-content:center; align-items:center; margin-top:1rem; flex-wrap:wrap; }
+    .paginacao button { background:#fff; border:1px solid var(--blue); color:var(--blue); padding:.4rem .8rem; border-radius:.4rem; cursor:pointer; font-weight:600; }
+    .paginacao button.active { background:var(--blue); color:#fff; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
+    <nav class="navbar">
+      <a href="produtos.html">Produtos</a>
+      <a href="departamentos.html">Departamentos</a>
+      <a href="carrinho.html">Carrinho</a>
+    </nav>
+    <div class="icons">
+      <div id="search-btn" class="fas fa-search"></div>
+      <div id="cart-btn" class="fas fa-shopping-cart"></div>
+      <div id="login-btn" class="fas fa-user"></div>
+      <div id="menu-btn" class="fas fa-bars"></div>
+    </div>
+    <form class="search-form">
+      <input type="text" id="search-box" placeholder="Buscar produtos...">
+      <label for="search-box" class="fas fa-search"></label>
+    </form>
+    <div class="shopping-cart"></div>
+    <form action="#" class="login-form">
+      <h3 id="login-title">Olá, visitante</h3>
+      <input type="email" placeholder="Email" required>
+      <input type="password" placeholder="Senha" required>
+      <a href="#">Esqueceu a senha?</a>
+      <button type="submit" class="btn">Entrar</button>
+      <button type="button" class="criar-btn" onclick="window.location.href='cadastro.html'">Criar uma Conta</button>
+    </form>
+  </header>
+
+  <main class="perfil-container">
+    <h1>Meu Perfil</h1>
+
+    <section class="card" id="dados-card">
+      <h2>Meus Dados</h2>
+      <div class="dados-grid">
+        <div class="campo"><label>Nome</label><span id="cli-nome">-</span></div>
+        <div class="campo"><label>Email</label><span id="cli-email">-</span></div>
+        <div class="campo"><label>Telefone</label><span id="cli-telefone">-</span></div>
+        <div class="campo"><label>CPF/CNPJ</label><span id="cli-doc">-</span></div>
+        <div class="campo"><label>Endereço</label><span id="cli-end">-</span></div>
+        <div class="campo"><label>Bairro</label><span id="cli-bairro">-</span></div>
+        <div class="campo"><label>Número</label><span id="cli-numero">-</span></div>
+        <div class="campo"><label>Cidade/UF</label><span id="cli-cidadeuf">-</span></div>
+      </div>
+      <div class="dados-editar" id="dados-editar">
+        <div class="dados-grid">
+          <div class="campo"><label>Nome</label><input id="ed-nome" type="text"></div>
+          <div class="campo"><label>Email (não editável)</label><input id="ed-email" type="email" disabled></div>
+          <div class="campo"><label>Telefone</label><input id="ed-telefone" type="text"></div>
+          <div class="campo"><label>CPF/CNPJ</label><input id="ed-doc" type="text"><div id="perfil-doc-erro" style="display:none;color:#d32f2f;font-size:1.2rem;margin-top:.3rem;">Documento inválido</div></div>
+          <div class="campo"><label>Endereço</label><input id="ed-endereco" type="text"></div>
+          <div class="campo"><label>Bairro</label><input id="ed-bairro" type="text"></div>
+          <div class="campo"><label>Número</label><input id="ed-numero" type="text"></div>
+          <div class="campo"><label>Cidade</label><input id="ed-cidade" type="text" readonly></div>
+          <div class="campo"><label>UF</label><input id="ed-uf" type="text" maxlength="2" style="text-transform:uppercase" readonly></div>
+          <div class="campo"><label>CEP</label><input id="ed-cep" type="text"><div id="perfil-cep-erro" style="display:none;color:#d32f2f;font-size:1.2rem;margin-top:.3rem;">CEP inválido</div></div>
+          <div class="campo"><label>Referência</label><input id="ed-referencia" type="text"></div>
+        </div>
+        <div class="dados-acoes">
+          <button class="btn" id="btn-salvar-dados">Salvar</button>
+          <button class="btn" id="btn-cancelar-dados" style="background:#999;">Cancelar</button>
+        </div>
+      </div>
+      <div class="dados-acoes">
+        <button class="btn" id="btn-editar-dados">Alterar dados</button>
+      </div>
+    </section>
+
+    <section class="card" id="pedidos">
+      <h2>Meus Pedidos</h2>
+      <div class="filtros">
+        <label for="filtro-periodo">Período:</label>
+        <select id="filtro-periodo">
+          <option value="30">Últimos 30 dias</option>
+          <option value="90">Últimos 90 dias</option>
+          <option value="365">Últimos 12 meses</option>
+          <option value="0">Todos</option>
+        </select>
+        <label for="filtro-entrega">Entrega:</label>
+        <select id="filtro-entrega">
+          <option value="">Todas</option>
+          <option value="1">Retirar</option>
+          <option value="2">Entregar</option>
+        </select>
+        <label for="filtro-pagto">Pagamento:</label>
+        <select id="filtro-pagto">
+          <option value="">Todos</option>
+          <option value="D">Dinheiro</option>
+          <option value="C">Cartão</option>
+          <option value="P">PIX</option>
+        </select>
+      </div>
+      <div id="pedidos-lista">Carregando pedidos...</div>
+      <div id="paginacao-pedidos" class="paginacao"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Control Power. Todos os direitos reservados.</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
+      if (!usuario || !usuario.id) {
+        alert('Você precisa estar logado para acessar o perfil.');
+        window.location.href = 'cadastro.html';
+        return;
+      }
+
+      // Carrega dados do cliente mais atualizados do servidor
+      fetch(apiUrl(`/api/cliente/${usuario.id}`))
+        .then(r => r.json())
+        .then(data => {
+          const cli = (data && data.success && data.cliente) ? data.cliente : usuario;
+          document.getElementById('cli-nome').textContent = cli.NOME || cli.nome || '-';
+          document.getElementById('cli-email').textContent = cli.EMAIL || cli.email || '-';
+          document.getElementById('cli-telefone').textContent = cli.TELEFONE || cli.CELULAR || cli.telefone || cli.celular || '-';
+          document.getElementById('cli-doc').textContent = cli.CPF || cli.CNPJ || cli.cpf || cli.cnpj || '-';
+          document.getElementById('cli-end').textContent = cli.ENDERECO || cli.endereco || '-';
+          document.getElementById('cli-bairro').textContent = cli.BAIRRO || cli.bairro || '-';
+          document.getElementById('cli-numero').textContent = cli.NUMERO || cli.numero || '-';
+          const cidade = cli.CIDADE || cli.cidade || '';
+          const uf = cli.UF || cli.uf || '';
+          document.getElementById('cli-cidadeuf').textContent = [cidade, uf].filter(Boolean).join(' / ') || '-';
+          // Preenche form de edição
+          const setv = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+          setv('ed-nome', cli.NOME || cli.nome || '');
+          setv('ed-email', cli.EMAIL || cli.email || '');
+          setv('ed-telefone', cli.TELEFONE || cli.CELULAR || cli.telefone || cli.celular || '');
+          setv('ed-doc', cli.CPF || cli.CNPJ || cli.cpf || cli.cnpj || '');
+          setv('ed-endereco', cli.ENDERECO || cli.endereco || '');
+          setv('ed-bairro', cli.BAIRRO || cli.bairro || '');
+          setv('ed-numero', cli.NUMERO || cli.numero || '');
+          setv('ed-cidade', cidade);
+          setv('ed-uf', uf);
+          setv('ed-cep', cli.CEP || cli.cep || '');
+          setv('ed-referencia', cli.REFERENCIA || cli.referencia || '');
+        })
+        .catch(() => {});
+
+      // Lista pedidos do cliente
+      const lista = document.getElementById('pedidos-lista');
+      let pedidosAll = [];
+      let numeroClienteMap = {};
+      let currentPage = 1;
+      const pageSize = 5;
+      // Helpers globais para data/hora (BRT)
+      const formatHoraBRT = (ymd, hm) => {
+        const dstr = `${ymd || ''}T${(hm || '00:00')}:00Z`; // assume UTC, converte para BRT na formatação
+        try {
+          const dt = new Date(dstr);
+          return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo' }).format(dt);
+        } catch { return hm || ''; }
+      };
+      const brtTimestamp = (ymd, hm) => {
+        const s = `${ymd || ''}T${(hm || '00:00')}:00-03:00`; // cria data com offset -03:00
+        const ts = Date.parse(s);
+        return isNaN(ts) ? 0 : ts;
+      };
+      fetch(apiUrl(`/api/cliente/${usuario.id}/pedidos`))
+        .then(r => r.json())
+        .then(data => {
+          if (!data.success) { lista.textContent = 'Erro ao carregar pedidos.'; return; }
+          // Normaliza data e hora vindas do backend para ISO (YYYY-MM-DD) e HH:MM
+          const normDateISO = (d) => {
+            if (!d) return '';
+            if (d instanceof Date && !isNaN(d)) {
+              const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), da=String(d.getDate()).padStart(2,'0');
+              return `${y}-${m}-${da}`;
+            }
+            const s = String(d);
+            const m1 = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+            if (m1) return `${m1[1]}-${m1[2]}-${m1[3]}`; // YYYY-MM-DD[...]
+            const m2 = s.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+            if (m2) return `${m2[3]}-${m2[2]}-${m2[1]}`; // DD/MM/YYYY
+            return '';
+          };
+          const normTimeHM = (t) => {
+            if (!t) return '';
+            if (t instanceof Date && !isNaN(t)) {
+              return `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+            }
+            const s = String(t);
+            const m1 = s.match(/(\d{2}):(\d{2})/);
+            if (m1) return `${m1[1]}:${m1[2]}`; // HH:MM
+            return '';
+          };
+          // (formatHoraBRT e brtTimestamp agora no escopo externo)
+          pedidosAll = (data.pedidos || []).map(p => ({
+            ...p,
+            data: normDateISO(p.data),
+            hora: normTimeHM(p.hora)
+          }));
+          // Numeração: manter a listagem do mais recente para o mais antigo,
+          // porém mostrar o "último número" (ou seja, o mais recente recebe N, depois N-1, ...)
+          const descOrdered = pedidosAll.slice().sort((a,b) => {
+            const at = brtTimestamp(a.data, a.hora);
+            const bt = brtTimestamp(b.data, b.hora);
+            return bt - at; // mais recente primeiro (BRT)
+          });
+          numeroClienteMap = {};
+          const totalNum = descOrdered.length;
+          descOrdered.forEach((p, idx) => {
+            // mais recente (idx 0) recebe totalNum; o seguinte recebe totalNum-1; etc.
+            numeroClienteMap[String(p.idpedido)] = totalNum - idx;
+          });
+          renderPedidos(true);
+        })
+        .catch(() => { lista.textContent = 'Erro ao carregar pedidos.'; });
+
+      // Renderiza pedidos aplicando filtros atuais
+      function formatDateBr(ymd){
+        if (!ymd) return '-';
+        const s = String(ymd);
+        // recebe YYYY-MM-DD e retorna DD/MM/YYYY
+        const m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+        // fallback: tenta DD/MM/YYYY já pronto
+        const m2 = s.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+        if (m2) return `${m2[1]}/${m2[2]}/${m2[3]}`;
+        return s;
+      }
+      // Agora a hora é sempre renderizada no fuso de Brasília (GMT-3)
+      function formatHoraBRT2(ymd, hm){
+        return formatHoraBRT(ymd, hm);
+      }
+
+      function renderPedidos(resetPage){
+        if (resetPage) currentPage = 1;
+        const periodo = document.getElementById('filtro-periodo').value; // dias
+        const tipoSel = document.getElementById('filtro-entrega').value;
+        const pagtoSel = document.getElementById('filtro-pagto').value;
+        let arr = pedidosAll.slice();
+        // período
+        if (periodo !== '0') {
+          const dias = parseInt(periodo, 10);
+          const lim = new Date(); lim.setDate(lim.getDate() - dias);
+          arr = arr.filter(p => {
+            const d = new Date(p.data);
+            return !isNaN(d) && d >= lim;
+          });
+        }
+        // tipo de entrega
+        if (tipoSel) arr = arr.filter(p => String(p.tipo_entrega) === String(tipoSel));
+        // pagamento
+        if (pagtoSel) arr = arr.filter(p => String(p.meio_pagto) === String(pagtoSel));
+        // paginação
+        const total = arr.length;
+        if (!total) { lista.textContent = 'Nenhum pedido para os filtros selecionados.'; document.getElementById('paginacao-pedidos').innerHTML = ''; return; }
+        const totalPages = Math.ceil(total / pageSize);
+        if (currentPage > totalPages) currentPage = totalPages;
+        const start = (currentPage - 1) * pageSize;
+        const pageArr = arr.slice(start, start + pageSize);
+        lista.innerHTML = '';
+        pageArr.forEach(p => {
+          const div = document.createElement('div');
+          div.className = 'pedido';
+          const tipo = String(p.tipo_entrega) === '2' ? 'Entregar' : 'Retirar';
+          const meio = p.meio_pagto === 'C' ? 'Cartão' : (p.meio_pagto === 'P' ? 'PIX' : 'Dinheiro');
+          const numCli = numeroClienteMap[String(p.idpedido)] || p.idpedido;
+          div.innerHTML = `
+            <div class="pedido-top">
+              <h3>#${numCli} <span class="pedido-id">PEDIDO ${p.idpedido}</span></h3>
+              <div class="pedido-meta">${formatDateBr(p.data)} às ${formatHoraBRT2(p.data, p.hora)} · <span class="pill">${tipo}</span> · <span class="pill">${meio}</span></div>
+              <div class="pedido-total">Total: R$ ${Number(p.total).toFixed(2)}</div>
+            </div>
+            ${p.obs ? `<div style=\"margin-top:.4rem; color:#444;\">Obs: ${p.obs}</div>` : ''}
+            ${String(p.tipo_entrega) === '2' ? `<div style=\"margin-top:.2rem; color:#666; font-size:1.2rem;\">Entrega em: ${[p.end_entrega,p.bai_entrega,p.num_entrega].filter(Boolean).join(', ')}</div>` : ''}
+            <div class="pedido-acoes" style="margin-top:.8rem;">
+              <button class="btn ver-itens-btn" data-id="${p.idpedido}">Ver itens</button>
+            </div>
+            <div class="pedido-itens" id="itens-${p.idpedido}">
+              <table>
+                <thead><tr><th>Produto</th><th>Qtde</th><th>Vlr Unit</th><th>Vlr Total</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          `;
+          lista.appendChild(div);
+        });
+        // paginação UI
+        const pag = document.getElementById('paginacao-pedidos');
+        let html = '';
+        html += `<button ${currentPage===1?'disabled':''} data-pg="prev">Anterior</button>`;
+        for (let i=1;i<=totalPages;i++) {
+          html += `<button class="${i===currentPage?'active':''}" data-pg="${i}">${i}</button>`;
+        }
+        html += `<button ${currentPage===totalPages?'disabled':''} data-pg="next">Próximo</button>`;
+        pag.innerHTML = html;
+      }
+
+      // Filtros -> re-render
+      document.getElementById('filtro-periodo').addEventListener('change', () => renderPedidos(true));
+      document.getElementById('filtro-entrega').addEventListener('change', () => renderPedidos(true));
+      document.getElementById('filtro-pagto').addEventListener('change', () => renderPedidos(true));
+
+      // Paginação click
+      document.getElementById('paginacao-pedidos').addEventListener('click', function(e){
+        const b = e.target.closest('button'); if (!b) return;
+        const pg = b.getAttribute('data-pg');
+        const total = Math.max(1, Math.ceil(pedidosAll.length / pageSize));
+        if (pg === 'prev') { if (currentPage>1) { currentPage--; renderPedidos(); } return; }
+        if (pg === 'next') { if (currentPage<total) { currentPage++; renderPedidos(); } return; }
+        const n = parseInt(pg,10); if (!isNaN(n)) { currentPage = n; renderPedidos(); }
+      });
+
+      // Edição dos dados (sem alterar email)
+      const btnEditar = document.getElementById('btn-editar-dados');
+      const btnSalvar = document.getElementById('btn-salvar-dados');
+      const btnCancelar = document.getElementById('btn-cancelar-dados');
+      const grid = document.querySelector('#dados-card .dados-grid');
+      const boxEdit = document.getElementById('dados-editar');
+      if (btnEditar) btnEditar.addEventListener('click', () => { grid.style.display='none'; boxEdit.style.display='block'; btnEditar.style.display='none'; });
+      if (btnCancelar) btnCancelar.addEventListener('click', (ev) => { ev.preventDefault(); boxEdit.style.display='none'; grid.style.display='grid'; btnEditar.style.display='inline-block'; });
+      if (btnSalvar) btnSalvar.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        const docErr = document.getElementById('perfil-doc-erro');
+        if (docErr) { docErr.style.display = 'none'; docErr.textContent = ''; }
+        const payload = {
+          nome: document.getElementById('ed-nome').value.trim(),
+          celular: document.getElementById('ed-telefone').value.trim(),
+          endereco: document.getElementById('ed-endereco').value.trim(),
+          bairro: document.getElementById('ed-bairro').value.trim(),
+          numero: document.getElementById('ed-numero').value.trim(),
+          cidade: document.getElementById('ed-cidade').value.trim(),
+          uf: document.getElementById('ed-uf').value.trim(),
+          cep: document.getElementById('ed-cep').value.trim(),
+          referencia: document.getElementById('ed-referencia').value.trim()
+        };
+        const docRaw = (document.getElementById('ed-doc').value || '').replace(/\D/g,'');
+        // Validação leve no cliente (ainda valida no servidor)
+        function validaCPF(cpf){
+          const s = String(cpf||'').replace(/\D/g,'');
+          if (s.length !== 11) return false;
+          if (/^(\d)\1{10}$/.test(s)) return false;
+          let sum=0; for (let i=0;i<9;i++) sum += parseInt(s[i])*(10-i);
+          let rev = 11 - (sum % 11); if (rev>=10) rev=0; if (rev !== parseInt(s[9])) return false;
+          sum=0; for (let i=0;i<10;i++) sum += parseInt(s[i])*(11-i);
+          rev = 11 - (sum % 11); if (rev>=10) rev=0; return rev === parseInt(s[10]);
+        }
+        function validaCNPJ(cnpj){
+          const s = String(cnpj||'').replace(/\D/g,'');
+          if (s.length !== 14) return false;
+          if (/^(\d)\1{13}$/.test(s)) return false;
+          const calc=(base)=>{ const pesos = base===12?[5,4,3,2,9,8,7,6,5,4,3,2]:[6,5,4,3,2,9,8,7,6,5,4,3,2]; let soma=0; for(let i=0;i<pesos.length;i++) soma+=parseInt(s[i])*pesos[i]; const resto=soma%11; return resto<2?0:11-resto; };
+          const d1=calc(12); if (d1 !== parseInt(s[12])) return false; const d2=calc(13); return d2 === parseInt(s[13]);
+        }
+        if (docRaw.length === 11) {
+          if (!validaCPF(docRaw)) {
+            if (docErr) { docErr.textContent = 'CPF inválido'; docErr.style.display = 'block'; }
+            document.getElementById('ed-doc').focus();
+            return;
+          }
+          payload.cpf = docRaw;
+        } else if (docRaw.length === 14) {
+          if (!validaCNPJ(docRaw)) {
+            if (docErr) { docErr.textContent = 'CNPJ inválido'; docErr.style.display = 'block'; }
+            document.getElementById('ed-doc').focus();
+            return;
+          }
+          payload.cnpj = docRaw;
+        }
+        fetch(apiUrl(`/api/cliente/${usuario.id}`), { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+          .then(async r => {
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok || !data.success) {
+              const msg = (data && data.error) ? data.error : 'Erro ao atualizar.';
+              if (/CPF inválido/i.test(msg) || /CNPJ inválido/i.test(msg)) {
+                if (docErr) { docErr.textContent = msg; docErr.style.display = 'block'; }
+                document.getElementById('ed-doc').focus();
+              } else {
+                alert(msg);
+              }
+              throw new Error(msg);
+            }
+            return data;
+          })
+          .then(resp => {
+            // Atualiza UI
+            if (payload.nome) document.getElementById('cli-nome').textContent = payload.nome;
+            if (payload.celular) document.getElementById('cli-telefone').textContent = payload.celular;
+            if (payload.endereco) document.getElementById('cli-end').textContent = payload.endereco;
+            if (payload.bairro) document.getElementById('cli-bairro').textContent = payload.bairro;
+            if (payload.numero) document.getElementById('cli-numero').textContent = payload.numero;
+            const cidadeuf = [payload.cidade, payload.uf].filter(Boolean).join(' / ');
+            if (cidadeuf) document.getElementById('cli-cidadeuf').textContent = cidadeuf;
+            if (payload.cpf || payload.cnpj) {
+              const maskCPF = (d) => `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9,11)}`;
+              const maskCNPJ = (d) => `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12,14)}`;
+              const d = payload.cpf || payload.cnpj;
+              const formatted = d.length === 11 ? maskCPF(d) : maskCNPJ(d);
+              document.getElementById('cli-doc').textContent = formatted;
+            }
+            // Atualiza localStorage
+            const u = JSON.parse(localStorage.getItem('usuarioLogado') || 'null') || {};
+            const novo = { ...u, nome: payload.nome || u.nome, CELULAR: payload.celular || u.CELULAR, ENDERECO: payload.endereco || u.ENDERECO, BAIRRO: payload.bairro || u.BAIRRO, NUMERO: payload.numero || u.NUMERO, CIDADE: payload.cidade || u.CIDADE, UF: payload.uf || u.UF, CEP: payload.cep || u.CEP, REFERENCIA: payload.referencia || u.REFERENCIA, CPF: payload.cpf || u.CPF, CNPJ: payload.cnpj || u.CNPJ };
+            localStorage.setItem('usuarioLogado', JSON.stringify(novo));
+            alert('Dados atualizados com sucesso.');
+            boxEdit.style.display='none'; grid.style.display='grid'; btnEditar.style.display='inline-block';
+          })
+          .catch(() => alert('Erro ao conectar ao servidor.'));
+      });
+
+      // Máscaras e CEP -> cidade/UF (como no cadastro)
+      const cepInput = document.getElementById('ed-cep');
+      const cidadeInput = document.getElementById('ed-cidade');
+      const ufInput = document.getElementById('ed-uf');
+      const telInput = document.getElementById('ed-telefone');
+      const cepErro = document.getElementById('perfil-cep-erro');
+      if (cidadeInput) cidadeInput.readOnly = true;
+      if (ufInput) ufInput.readOnly = true;
+      function maskCep(e){
+        let v = (e.target.value || '').replace(/\D/g, '');
+        if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5,8);
+        e.target.value = v;
+      }
+      function buscarCidadeEstado(){
+        const cep = (cepInput?.value || '').replace(/\D/g, '');
+        if (cep.length !== 8) return;
+        fetch(`https://viacep.com.br/ws/${cep}/json/`)
+          .then(r => r.json())
+          .then(data => {
+            if (!data.erro) {
+              if (cidadeInput) cidadeInput.value = data.localidade || '';
+              if (ufInput) ufInput.value = data.uf || '';
+              if (cepErro) cepErro.style.display = 'none';
+            } else {
+              if (cidadeInput) cidadeInput.value = '';
+              if (ufInput) ufInput.value = '';
+              if (cepErro) cepErro.style.display = 'block';
+            }
+          })
+          .catch(() => { if (cepErro) cepErro.style.display = 'block'; });
+      }
+      if (cepInput) {
+        cepInput.addEventListener('input', maskCep);
+        cepInput.addEventListener('blur', buscarCidadeEstado);
+        cepInput.addEventListener('keydown', function(e){ if (e.key==='Enter' || e.key==='Tab') setTimeout(buscarCidadeEstado, 0); });
+      }
+      if (telInput) {
+        telInput.addEventListener('input', function(e){
+          let v = (e.target.value || '').replace(/\D/g, '');
+          if (v.length > 2) v = `(${v.slice(0,2)})${v.slice(2,7)}-${v.slice(7,11)}`;
+          if (v.endsWith('-')) v = v.slice(0,-1);
+          e.target.value = v;
+        });
+      }
+
+      // Máscara CPF/CNPJ
+      const docInput = document.getElementById('ed-doc');
+      if (docInput) {
+        docInput.addEventListener('input', function(e){
+          let d = (e.target.value || '').replace(/\D/g, '');
+          if (d.length <= 11) {
+            d = d.slice(0,11);
+            const p1=d.slice(0,3), p2=d.slice(3,6), p3=d.slice(6,9), p4=d.slice(9,11);
+            let s=p1; if (p2) s+= '.'+p2; if (p3) s+= '.'+p3; if (p4) s+= '-'+p4; 
+            e.target.value = s;
+          } else {
+            d = d.slice(0,14);
+            const a=d.slice(0,2), b=d.slice(2,5), c=d.slice(5,8), d4=d.slice(8,12), d5=d.slice(12,14);
+            let s=a; if (b) s+='.'+b; if (c) s+='.'+c; if (d4) s+='/'+d4; if (d5) s+='-'+d5; 
+            e.target.value = s;
+          }
+        });
+      }
+
+      // Delegação: abrir/fechar e carregar itens do pedido
+      document.addEventListener('click', function(ev){
+        const btn = ev.target.closest('.ver-itens-btn');
+        if (!btn) return;
+        const id = btn.getAttribute('data-id');
+        const box = document.getElementById(`itens-${id}`);
+        if (!box) return;
+        if (box.dataset.loaded === '1') {
+          // toggle
+          box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+          return;
+        }
+        fetch(apiUrl(`/api/pedidos/${id}/itens`))
+          .then(r => r.json())
+          .then(data => {
+            if (!data.success) { alert('Erro ao carregar itens.'); return; }
+            const tbody = box.querySelector('tbody');
+            tbody.innerHTML = (data.itens || []).map(i => `
+              <tr>
+                <td>${i.nome || i.procod}</td>
+                <td>${i.qtd} ${i.und || ''}</td>
+                <td>R$ ${Number(i.vlruni).toFixed(2)}</td>
+                <td>R$ ${Number(i.vlrtot).toFixed(2)}</td>
+              </tr>
+            `).join('');
+            box.dataset.loaded = '1';
+            box.style.display = 'block';
+          })
+          .catch(() => alert('Erro ao carregar itens.'));
+      });
+    });
+  </script>
+</body>
+</html>
