@@ -36,6 +36,10 @@
     .pedido-itens table { width:100%; border-collapse:collapse; }
     .pedido-itens th, .pedido-itens td { border-bottom:1px solid #eee; text-align:left; padding:.5rem; font-size:1.3rem; }
     .pill { display:inline-block; background:#e3f2fd; color:#1a4fa3; padding:.2rem .6rem; border-radius:999px; font-size:1.1rem; font-weight:600; }
+  /* Status pills */
+  .pill.status-aberto { background:#ffe58f; color:#7a5900; }
+  .pill.status-finalizado { background:#28a745; color:#fff; }
+  .pill.status-cancelado { background:#dc3545; color:#fff; }
     .paginacao { display:flex; gap:.4rem; justify-content:center; align-items:center; margin-top:1rem; flex-wrap:wrap; }
     .paginacao button { background:#fff; border:1px solid var(--blue); color:var(--blue); padding:.4rem .8rem; border-radius:.4rem; cursor:pointer; font-weight:600; }
     .paginacao button.active { background:var(--blue); color:#fff; }
@@ -301,11 +305,17 @@
           div.className = 'pedido';
           const tipo = String(p.tipo_entrega) === '2' ? 'Entregar' : 'Retirar';
           const meio = p.meio_pagto === 'C' ? 'Cartão' : (p.meio_pagto === 'P' ? 'PIX' : 'Dinheiro');
+          // Status (FLAG): A=ABERTO, F=FINALIZADO, C=CANCELADO
+          const flag = (p.flag || '').toUpperCase();
+          let statusTxt = 'ABERTO';
+          let statusClass = 'status-aberto';
+          if (flag === 'F') { statusTxt = 'FINALIZADO'; statusClass = 'status-finalizado'; }
+          else if (flag === 'C') { statusTxt = 'CANCELADO'; statusClass = 'status-cancelado'; }
           const numCli = numeroClienteMap[String(p.idpedido)] || p.idpedido;
           div.innerHTML = `
             <div class="pedido-top">
               <h3>#${numCli} <span class="pedido-id">PEDIDO ${p.idpedido}</span></h3>
-              <div class="pedido-meta">${formatDateBr(p.data)} às ${formatHoraBRT2(p.data, p.hora)} · <span class="pill">${tipo}</span> · <span class="pill">${meio}</span></div>
+              <div class="pedido-meta">${formatDateBr(p.data)} às ${formatHoraBRT2(p.data, p.hora)} · <span class="pill">${tipo}</span> · <span class="pill">${meio}</span> · <span class="pill status-pill ${statusClass}">${statusTxt}</span></div>
               <div class="pedido-total">Total: R$ ${Number(p.total).toFixed(2)}</div>
             </div>
             ${p.obs ? `<div style=\"margin-top:.4rem; color:#444;\">Obs: ${p.obs}</div>` : ''}

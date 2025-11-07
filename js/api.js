@@ -436,9 +436,10 @@ router.post('/finalizar-compra', express.json(), (req, res) => {
       const tipo_entrega = cliente.tipo_entrega || '';
       const meio_pagto = cliente.meio_pagto || '';
       const obs = cliente.obs || '';
+      // Inclui FLAG (status do pedido): 'A' = ABERTO inicial
       db.query(
-        'INSERT INTO PEDIDOS (IDPEDIDO, DTPEDIDO, HRPEDIDO, CLIE_COD, CLIE_ENDENTREGA, CLIE_BAIENTREGA, CLIE_NUMENTREGA, TIPO_ENTREGA, MEIO_PAGTO, OBS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [novoId, dtped, hrped, clie_cod, clie_endentrega, clie_baientrega, clie_numentrega, tipo_entrega, meio_pagto, obs],
+        'INSERT INTO PEDIDOS (IDPEDIDO, DTPEDIDO, HRPEDIDO, CLIE_COD, CLIE_ENDENTREGA, CLIE_BAIENTREGA, CLIE_NUMENTREGA, TIPO_ENTREGA, MEIO_PAGTO, OBS, FLAG) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [novoId, dtped, hrped, clie_cod, clie_endentrega, clie_baientrega, clie_numentrega, tipo_entrega, meio_pagto, obs, 'A'],
         (err) => {
           if (err) {
             db.detach();
@@ -500,13 +501,13 @@ router.get('/cliente/:id/pedidos', (req, res) => {
     if (err) return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco' });
     const sql = `
       SELECT p.IDPEDIDO, p.DTPEDIDO, p.HRPEDIDO, p.TIPO_ENTREGA, p.MEIO_PAGTO, p.OBS,
-             p.CLIE_ENDENTREGA, p.CLIE_BAIENTREGA, p.CLIE_NUMENTREGA,
+             p.CLIE_ENDENTREGA, p.CLIE_BAIENTREGA, p.CLIE_NUMENTREGA, p.FLAG,
              COALESCE(SUM(i.VLRTOT), 0) AS TOTAL
         FROM PEDIDOS p
         LEFT JOIN PEDIDOS_ITENS i ON i.IDPEDIDO = p.IDPEDIDO
        WHERE p.CLIE_COD = ?
        GROUP BY p.IDPEDIDO, p.DTPEDIDO, p.HRPEDIDO, p.TIPO_ENTREGA, p.MEIO_PAGTO, p.OBS,
-                p.CLIE_ENDENTREGA, p.CLIE_BAIENTREGA, p.CLIE_NUMENTREGA
+                p.CLIE_ENDENTREGA, p.CLIE_BAIENTREGA, p.CLIE_NUMENTREGA, p.FLAG
        ORDER BY p.DTPEDIDO DESC, p.HRPEDIDO DESC`;
     db.query(sql, [id], (err, result) => {
       db.detach(() => {});
@@ -521,6 +522,7 @@ router.get('/cliente/:id/pedidos', (req, res) => {
         end_entrega: r.CLIE_ENDENTREGA,
         bai_entrega: r.CLIE_BAIENTREGA,
         num_entrega: r.CLIE_NUMENTREGA,
+        flag: r.FLAG, // 'A','F','C' etc
         total: Number(r.TOTAL || 0)
       }));
       res.json({ success: true, pedidos });

@@ -51,6 +51,13 @@
       .grid-2 { grid-template-columns: 1fr; }
       .resumo .linha { flex-direction: column; align-items: flex-start; gap:.5rem; }
     }
+    /* Destaque visual para frete grátis */
+    #linha-frete #valor-frete.frete-gratis { color:#2e7d32; font-weight:700; }
+    /* Troco (dinheiro) */
+  .troco-card { margin-top: .6rem; background:#fffaf0; border:1px solid #ffe0a3; border-radius:.5rem; padding: .8rem; display:none; }
+    .troco-card label { font-size:1.2rem; font-weight:600; color:#6b4b00; }
+  .troco-card input { width: 220px; max-width:100%; padding:.6rem .8rem; border:1px solid #d8b565; border-radius:.4rem; font-size:1.2rem; }
+  .troco-card input.invalid { border-color:#d32f2f; box-shadow:0 0 0 3px rgba(211,47,47,0.15); }
   </style>
 </head>
 <body>
@@ -70,14 +77,18 @@
     <div id="aviso"></div>
     <section class="resumo">
       <h2>Resumo do Pedido</h2>
-      <div id="itens"></div>
-      <div class="linha total"><span>Total</span><span id="total">R$ 0,00</span></div>
+  <div id="itens"></div>
+  <div id="linha-frete" class="linha" style="display:none;"><span>Entrega</span><span id="valor-frete">R$ 0,00</span></div>
+  <div class="linha total"><span>Total</span><span id="total">R$ 0,00</span></div>
       <div class="linha" style="border-bottom:0; display:flex; gap:1rem; align-items:center;">
         <label for="entrega-select" style="font-weight:bold;">Forma de entrega:</label>
         <select id="entrega-select">
           <option value="1" selected>Retirar na loja</option>
           <option value="2">Entregar</option>
         </select>
+      </div>
+      <div id="msg-frete" style="display:none; color:#8a6d3b; background:#fcf8e3; border:1px solid #faebcc; padding:.6rem .8rem; border-radius:.4rem; margin:-.6rem 0 .6rem; font-size:1.2rem;">
+        Para pedidos abaixo de R$ 50,00 será cobrada taxa de entrega de R$ 5,00.
       </div>
       <div id="endereco-entrega" class="entrega-card">
         <h3>Endereço da entrega</h3>
@@ -109,6 +120,10 @@
           <option value="C">Cartão</option>
           <option value="P">PIX</option>
         </select>
+      </div>
+      <div id="troco-dinheiro" class="troco-card">
+        <label for="troco-valor">TROCO PARA:</label>
+        <input id="troco-valor" type="text" inputmode="decimal" placeholder="R$ 0,00" />
       </div>
       <div class="linha" style="flex-direction: column; align-items: stretch; gap:.5rem; border-bottom:0;">
         <label for="obs-pedido" style="font-weight:bold;">Observações do pedido</label>
@@ -145,7 +160,8 @@
         itensEl.innerHTML = '<p>Seu carrinho está vazio.</p>';
         return;
       }
-      let total = 0;
+  let total = 0; // subtotal dos itens
+  let entregaTaxaAtual = 0; // taxa de entrega dinâmica (0 ou 5)
       itensEl.innerHTML = '';
       carrinho.forEach(item => {
         const preco = typeof item.preco === 'string' ? parseFloat(item.preco.replace(',', '.')) : Number(item.preco);
@@ -157,7 +173,29 @@
         div.innerHTML = `<span>${item.nome} x${qtd}</span><span>R$ ${sub.toFixed(2)}</span>`;
         itensEl.appendChild(div);
       });
-      totalEl.textContent = `R$ ${total.toFixed(2)}`;
+      // Inicializa totais (subtotal + possível frete)
+      function aplicarFreteUI(){
+        const freteMin = 50;
+        const freteValor = 5;
+        const entregar = entregaSelect.value === '2';
+        const precisaFrete = entregar && total < freteMin;
+        entregaTaxaAtual = precisaFrete ? freteValor : 0;
+        // mensagem
+        const msg = document.getElementById('msg-frete');
+        msg.style.display = precisaFrete ? 'block' : 'none';
+        // linha frete e total
+        const linhaFrete = document.getElementById('linha-frete');
+        const valorFreteEl = document.getElementById('valor-frete');
+        if (entregar) {
+          linhaFrete.style.display = 'flex';
+          valorFreteEl.textContent = entregaTaxaAtual === 0 ? 'Grátis' : `R$ ${entregaTaxaAtual.toFixed(2)}`;
+          valorFreteEl.classList.toggle('frete-gratis', entregaTaxaAtual === 0);
+        } else {
+          linhaFrete.style.display = 'none';
+        }
+        totalEl.textContent = `R$ ${(total + entregaTaxaAtual).toFixed(2)}`;
+      }
+      totalEl.textContent = `R$ ${(total + entregaTaxaAtual).toFixed(2)}`;
 
       // Buscar dados do cliente para pré-preencher endereço de entrega
       let clienteBase = null;
@@ -192,9 +230,45 @@
           document.getElementById('entrega-bairro')?.classList.remove('invalid');
           document.getElementById('entrega-numero')?.classList.remove('invalid');
         }
+        aplicarFreteUI();
       }
       entregaSelect.addEventListener('change', aplicarEntregaUI);
-      aplicarEntregaUI();
+  aplicarEntregaUI();
+
+      // Mostrar/ocultar campo TROCO PARA conforme pagamento
+      const pagtoSelect = document.getElementById('pagto-select');
+      const trocoBox = document.getElementById('troco-dinheiro');
+      const trocoInput = document.getElementById('troco-valor');
+      function aplicarTrocoUI(){
+        trocoBox.style.display = (pagtoSelect.value === 'D') ? 'block' : 'none';
+      }
+      pagtoSelect.addEventListener('change', aplicarTrocoUI);
+      aplicarTrocoUI();
+
+      // Máscara simples de moeda BR para o campo troco
+      function formatBRL(val){
+        const onlyDigits = String(val).replace(/\D+/g,'');
+        const cents = onlyDigits === '' ? '0' : onlyDigits;
+        const num = (parseInt(cents,10) || 0) / 100;
+        return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      }
+      function parseBRLToNumber(str){
+        if (!str) return 0;
+        const s = String(str).replace(/[^0-9,\.]/g,'').replace(/\./g,'').replace(',', '.');
+        const n = parseFloat(s);
+        return isNaN(n) ? 0 : n;
+      }
+      function attachMoneyMask(el){
+        if (!el) return;
+        el.addEventListener('input', () => {
+          const caretToEnd = document.activeElement === el; // simples
+          el.value = formatBRL(el.value);
+          if (caretToEnd) el.setSelectionRange(el.value.length, el.value.length);
+        });
+        // inicia vazio formatado se já existir valor
+        if (el.value) el.value = formatBRL(el.value);
+      }
+      attachMoneyMask(trocoInput);
 
       // Remove destaque de erro ao digitar
       ['entrega-endereco','entrega-bairro','entrega-numero'].forEach(id => {
@@ -203,14 +277,33 @@
       });
 
       // Confirmar pedido => buscar dados do cliente e enviar para API
-      document.getElementById('confirmar').addEventListener('click', () => {
+  document.getElementById('confirmar').addEventListener('click', () => {
         const itens = JSON.parse(localStorage.getItem('carrinho') || '[]');
         if (!itens.length) {
           alert('Seu carrinho está vazio.');
           return;
         }
-        const sel = document.getElementById('pagto-select');
-        const meioPagto = sel ? sel.value : 'D'; // D=Dinheiro, C=Cartão, P=PIX
+  const sel = document.getElementById('pagto-select');
+  const meioPagto = sel ? sel.value : 'D'; // D=Dinheiro, C=Cartão, P=PIX
+  // Recalcula taxa de entrega no momento do envio
+  const taxaEntrega = (document.getElementById('entrega-select')?.value === '2' && total < 50) ? 5 : 0;
+  const totalPagar = total + taxaEntrega;
+        // Se pagamento for DINHEIRO, exigir TROCO PARA preenchido (> 0)
+        if (meioPagto === 'D') {
+          const tEl = document.getElementById('troco-valor');
+          const raw = (tEl?.value || '').trim();
+          const valNum = parseBRLToNumber(raw);
+          tEl?.classList.remove('invalid');
+          // Troco é obrigatório e deve ser MAIOR que o total da compra
+          if (!raw || valNum <= totalPagar) {
+            document.getElementById('troco-dinheiro').style.display = 'block';
+            tEl?.classList.add('invalid');
+            alert(`Informe o valor do TROCO PARA maior que o total da compra (Total: R$ ${totalPagar.toFixed(2)}).`);
+            tEl?.focus();
+            document.getElementById('troco-dinheiro')?.scrollIntoView({ behavior:'smooth', block:'center' });
+            return;
+          }
+        }
         const tipoEntrega = (document.getElementById('entrega-select')?.value) || '1';
         // Se for entrega, exigir endereço/bairro/número preenchidos
         if (tipoEntrega === '2') {
@@ -246,6 +339,27 @@
               alert('Não foi possível obter os dados do cliente.');
               return;
             }
+            // Observação base digitada
+            let obsBase = (document.getElementById('obs-pedido')?.value || '').trim();
+            // Se pagamento em dinheiro e campo de troco preenchido, acrescenta na observação
+            if (meioPagto === 'D') {
+              const valTroco = (document.getElementById('troco-valor')?.value || '').trim();
+              if (valTroco) {
+                // Normaliza para garantir prefixo R$
+                const trocoFmt = valTroco.startsWith('R$') ? valTroco : `R$ ${valTroco}`;
+                const linhaTroco = `TROCO PARA: ${trocoFmt}`;
+                obsBase = obsBase ? `${obsBase}\n${linhaTroco}` : linhaTroco;
+              }
+            }
+            // Observação de frete (informativo)
+            if (taxaEntrega > 0) {
+              const linhaFrete = `ENTREGA: R$ ${taxaEntrega.toFixed(2)} (pedido abaixo de R$ 50,00)`;
+              obsBase = obsBase ? `${obsBase}\n${linhaFrete}` : linhaFrete;
+            } else if (document.getElementById('entrega-select')?.value === '2') {
+              const linhaFrete = `ENTREGA: Grátis`;
+              obsBase = obsBase ? `${obsBase}\n${linhaFrete}` : linhaFrete;
+            }
+
             const cliente = {
               id: usuario.id,
               nome: usuario.nome,
@@ -254,7 +368,7 @@
               numero: (tipoEntrega === '2') ? (document.getElementById('entrega-numero').value || '') : '',
               meio_pagto: meioPagto,
               tipo_entrega: parseInt(tipoEntrega, 10),
-              obs: (document.getElementById('obs-pedido')?.value || '').slice(0, 500)
+              obs: obsBase.slice(0, 500)
             };
             fetch(apiUrl('/api/finalizar-compra'), {
               method: 'POST',
