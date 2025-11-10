@@ -44,16 +44,19 @@ router.get('/healthz', (req, res) => {
 });
 
 // Rota de login
+// Login case-insensitive para o email
 router.post('/login', express.json(), (req, res) => {
-  const { email, senha } = req.body;
+  let { email, senha } = req.body;
   if (!email || !senha) {
     return res.status(400).json({ success: false, error: 'Email e senha obrigatórios.' });
   }
+  // Normaliza email para comparação (lowercase)
+  email = String(email).trim().toLowerCase();
   connection.conectar((err, db) => {
     if (err) {
       return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco.' });
     }
-    db.query('SELECT ID, NOMECLI, EMAIL FROM CLIENTES WHERE EMAIL = ? AND SENHA = ?', [email, senha], (err, result) => {
+    db.query('SELECT ID, NOMECLI, EMAIL FROM CLIENTES WHERE LOWER(EMAIL) = ? AND SENHA = ?', [email, senha], (err, result) => {
       db.detach(() => {});
       if (err) {
         return res.status(500).json({ success: false, error: 'Erro ao buscar usuário.' });
@@ -61,7 +64,6 @@ router.post('/login', express.json(), (req, res) => {
       if (result.length === 0) {
         return res.status(401).json({ success: false, error: 'Email ou senha inválidos.' });
       }
-      // Retorna dados básicos do usuário
       res.json({ success: true, usuario: { id: result[0].ID, nome: result[0].NOMECLI, email: result[0].EMAIL } });
     });
   });
@@ -358,7 +360,8 @@ router.post('/cadastro', express.json(), (req, res) => {
       return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco' });
     }
     const { email } = req.body;
-    db.query('SELECT ID FROM CLIENTES WHERE EMAIL = ?', [email], (err, result) => {
+  const emailNorm = String(email).trim().toLowerCase();
+  db.query('SELECT ID FROM CLIENTES WHERE LOWER(EMAIL) = ?', [emailNorm], (err, result) => {
       if (err) {
         db.detach();
         return res.status(500).json({ success: false, error: 'Erro ao verificar email' });
@@ -374,13 +377,13 @@ router.post('/cadastro', express.json(), (req, res) => {
         }
         const novoId = (result[0].MAX_ID || 0) + 1;
         const {
-          nome, email, endereco, bairro, numero, complemento,
+          nome, email: emailOriginal, endereco, bairro, numero, complemento,
           cidade, estado, cep, celular, senha, dtcadastro
         } = req.body;
         db.query(
           'INSERT INTO CLIENTES (ID, NOMECLI, EMAIL, ENDERECO, BAIRRO, NUMERO, REFERENCIA, CIDADE, UF, CEP, CELULAR, SENHA, DTCADASTRO) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [
-            parseInt(novoId), nome, email, endereco, bairro, numero, complemento,
+            parseInt(novoId), nome, String(emailOriginal).trim().toLowerCase(), endereco, bairro, numero, complemento,
             cidade, estado, cep, celular, senha, dtcadastro
           ],
           (err) => {

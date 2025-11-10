@@ -196,6 +196,16 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
+                    // Auto login com os dados recém-cadastrados
+                    try {
+                        const usuario = { id: data.id, nome: dados.nome, email: String(dados.email||'').toLowerCase() };
+                        localStorage.setItem('usuarioLogado', JSON.stringify(usuario));
+                        // Notificação de sucesso
+                        if (typeof window.showToast === 'function') window.showToast('CONECTADO COM SUCESSO');
+                        // Dispara eventos para atualizar header/badge
+                        window.dispatchEvent(new Event('usuarioLogado'));
+                        window.dispatchEvent(new Event('storage'));
+                    } catch(e) {}
                     alert('Cadastro realizado com sucesso!');
                     cadastroForm.reset();
                     window.location.href = 'index.html';

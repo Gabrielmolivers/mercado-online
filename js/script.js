@@ -61,12 +61,40 @@ function initializeHeaderInteractions(){
     }, { passive: true });
 }
 
+// Toast simples no topo da tela
+function showToast(message, opts){
+    try {
+        const options = opts || {};
+        const bg = options.background || '#1657cf';
+        const color = options.color || '#fff';
+        const timeout = options.timeout || 1200;
+        const msg = document.createElement('div');
+        msg.textContent = message;
+        msg.style.position = 'fixed';
+        msg.style.top = '20px';
+        msg.style.left = '50%';
+        msg.style.transform = 'translateX(-50%)';
+        msg.style.background = bg;
+        msg.style.color = color;
+        msg.style.padding = '1rem 2rem';
+        msg.style.borderRadius = '2rem';
+        msg.style.fontSize = '1.4rem';
+        msg.style.fontWeight = 'bold';
+        msg.style.zIndex = '9999';
+        msg.style.boxShadow = '0 .2rem 1rem rgba(0,0,0,.2)';
+        msg.style.transition = 'opacity .5s';
+        document.body.appendChild(msg);
+        setTimeout(() => { msg.style.opacity = '0'; setTimeout(() => msg.remove(), 500); }, timeout);
+    } catch(e){}
+}
+
 // Chama imediatamente caso o layout já tenha sido injetado
 initializeHeaderInteractions();
 // Reexecuta após DOM pronto (garantia)
 document.addEventListener('DOMContentLoaded', initializeHeaderInteractions);
 // Permite que layout.js re-chame se reinjetar conteúdo
 window.initializeHeaderInteractions = initializeHeaderInteractions;
+window.showToast = showToast;
 
 
 
@@ -108,7 +136,8 @@ function bindLoginFlow(){
         e.preventDefault();
         const emailEl = loginForm.querySelector('input[type="email"]');
         const senhaEl = loginForm.querySelector('input[type="password"]');
-        const email = emailEl ? emailEl.value.trim() : '';
+    // Email case-insensitive: envia sempre em lowercase
+        const email = emailEl ? emailEl.value.trim().toLowerCase() : '';
         const senha = senhaEl ? senhaEl.value.trim() : '';
         if (!email || !senha){ alert('Preencha email e senha.'); return; }
         fetch(apiUrl('/api/login'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, senha }) })
@@ -125,11 +154,13 @@ function bindLoginFlow(){
                         loginForm.classList.remove('active');
                         // limpa campos
                         if (emailEl) emailEl.value=''; if (senhaEl) senhaEl.value='';
+                        if (typeof showToast === 'function') showToast('CONECTADO COM SUCESSO');
                     })
                     .catch(() => {
                         localStorage.setItem('usuarioLogado', JSON.stringify(data.usuario));
                         atualizarTituloLogin();
                         loginForm.classList.remove('active');
+                        if (typeof showToast === 'function') showToast('CONECTADO COM SUCESSO');
                     });
             })
             .catch(() => alert('Erro ao conectar ao servidor.'));
@@ -224,6 +255,40 @@ function updateCartBadge() {
 // Atualiza o header do carrinho com os itens
 function atualizarCarrinhoHeader() {
     let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
+    // Atualiza preços dos itens do carrinho com base nos dados atuais de produtos (promoções e valores vigentes)
+    // Usa cache de produtos se existir; se não, busca e depois re-renderiza.
+    function refreshPrices(baseProdutos){
+        if (!Array.isArray(baseProdutos)) return;
+        let mudou = false;
+        const toNumber = (n)=>{ if (n===null||n===undefined) return NaN; if (typeof n==='number') return n; const s=String(n).replace(',','.'); const v=Number(s); return isNaN(v)?NaN:v; };
+        const hoje = new Date(); const today = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+        const parseDate = (s)=>{ if(!s) return null; if (/^\d{4}-\d{2}-\d{2}$/.test(s)){ const [Y,M,D]=s.split('-').map(Number); return new Date(Y,M-1,D);} const m=s.match(/(\d{2})[.\/-](\d{2})[.\/-](\d{4})/); if(m){ return new Date(Number(m[3]), Number(m[2])-1, Number(m[1])); } const d=new Date(s); return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate()); };
+        carrinho.forEach(item => {
+            const prod = baseProdutos.find(p => String(p.procod) === String(item.procod));
+            if (!prod) return;
+            const precoBase = toNumber(prod.preco);
+            const precoPromo = toNumber(prod.precoPromo);
+            const fimPromo = parseDate(prod.fimpromo);
+            const promoAtiva = !!(fimPromo && fimPromo.getTime() > today.getTime() && !isNaN(precoPromo) && precoPromo>0 && !isNaN(precoBase) && precoPromo < precoBase);
+            const precoAtual = promoAtiva ? precoPromo : precoBase;
+            if (!isNaN(precoAtual) && Number(item.preco) !== precoAtual) {
+                item.preco = precoAtual;
+                mudou = true;
+            }
+            // Atualiza UND caso tenha mudado
+            if (prod.und && item.und !== prod.und){ item.und = prod.und; mudou = true; }
+        });
+        if (mudou){ localStorage.setItem('carrinho', JSON.stringify(carrinho)); }
+    }
+    if (window.__PRODUTOS_CACHE__) {
+        refreshPrices(window.__PRODUTOS_CACHE__);
+    } else {
+        // Busca silenciosa de todos produtos para garantir sincronização (limit alto)
+        fetch(apiUrl('/api/produtos?offset=0&limit=10000&_=' + Date.now()))
+          .then(r=>r.json())
+          .then(data => { if (data.success && Array.isArray(data.produtos)) { window.__PRODUTOS_CACHE__ = data.produtos; refreshPrices(data.produtos); atualizarCarrinhoHeader(); } })
+          .catch(()=>{});
+    }
     let shoppingCart = document.querySelector('.shopping-cart');
     if (!shoppingCart) return;
     shoppingCart.innerHTML = '';

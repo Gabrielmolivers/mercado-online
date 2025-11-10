@@ -147,26 +147,9 @@ function exibirProdutos(lista) {
             const isPromoActive = !!(fimDate && fimDate.getTime() > today.getTime() && !isNaN(precoPromoNum) && precoPromoNum > 0 && precoPromoNum < precoBaseNum);
             const prodCarrinho = { ...prod, preco: isPromoActive ? precoPromoNum : precoBaseNum };
             adicionarAoCarrinho(prodCarrinho, qtd);
-            // Mensagem de confirmação com fade out
-            let msg = document.createElement('div');
-            msg.textContent = 'ADICIONADO COM SUCESSO';
-            msg.style.position = 'fixed';
-            msg.style.top = '20px';
-            msg.style.left = '50%';
-            msg.style.transform = 'translateX(-50%)';
-            msg.style.background = '#1657cf';
-            msg.style.color = '#fff';
-            msg.style.padding = '1rem 2rem';
-            msg.style.borderRadius = '2rem';
-            msg.style.fontSize = '1.4rem';
-            msg.style.fontWeight = 'bold';
-            msg.style.zIndex = '9999';
-            msg.style.transition = 'opacity 0.5s';
-            document.body.appendChild(msg);
-            setTimeout(() => {
-                msg.style.opacity = '0';
-                setTimeout(() => { msg.remove(); }, 500);
-            }, 1000);
+            if (typeof window.showToast === 'function') {
+                window.showToast('ADICIONADO COM SUCESSO');
+            }
         };
     });
     atualizarPaginacao();

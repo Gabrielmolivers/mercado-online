@@ -111,12 +111,9 @@ function renderOfertas(lista) {
       const precoPromoNum = typeof prod.precoPromo === 'number' ? prod.precoPromo : parseFloat(String(prod.precoPromo).replace(',', '.'));
       const prodCarrinho = { ...prod, preco: isNaN(precoPromoNum) ? Number(prod.precoPromo) : precoPromoNum };
       adicionarAoCarrinho(prodCarrinho, qtd);
-      // Feedback rápido
-      let msg = document.createElement('div');
-      msg.textContent = 'ADICIONADO COM SUCESSO';
-      msg.style = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1657cf;color:#fff;padding:1rem 2rem;border-radius:2rem;font-size:1.4rem;font-weight:bold;z-index:9999;transition:opacity .5s';
-      document.body.appendChild(msg);
-      setTimeout(()=>{ msg.style.opacity='0'; setTimeout(()=>msg.remove(),500); },1000);
+      if (typeof window.showToast === 'function') {
+        window.showToast('ADICIONADO COM SUCESSO');
+      }
     };
   });
 

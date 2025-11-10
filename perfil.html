@@ -30,12 +30,20 @@
     .pedido-top { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
     .pedido-top h3 { margin:0; font-size:1.6rem; color:var(--blue); }
     .pedido-meta { color:#666; font-size:1.2rem; }
-    .pedido-total { font-weight:bold; color:var(--blue); }
+  .pedido-total { font-weight:bold; color:var(--blue); font-size:1.4rem; }
   .pedido-id { color:#888; font-size:1.2rem; margin-right:.6rem; font-weight:600; }
     .pedido-acoes { display:flex; gap:.6rem; }
     .pedido-itens { display:none; margin-top:.8rem; }
     .pedido-itens table { width:100%; border-collapse:collapse; }
     .pedido-itens th, .pedido-itens td { border-bottom:1px solid #eee; text-align:left; padding:.5rem; font-size:1.3rem; }
+    /* Destaque para o total dos itens (sem taxa de entrega) */
+    .pedido-itens .total-itens-row td { border-top:2px solid #e3eefc; }
+    .pedido-itens .total-itens-row td:last-child {
+      background:#eaf3ff; /* azul clarinho */
+      color:#1a4fa3;
+      font-weight:800;
+      border-radius:.3rem;
+    }
     .pill { display:inline-block; background:#e3f2fd; color:#1a4fa3; padding:.2rem .6rem; border-radius:999px; font-size:1.1rem; font-weight:600; }
   /* Status pills */
   .pill.status-aberto { background:#ffe58f; color:#7a5900; }
@@ -535,7 +543,8 @@
             .then(data => {
               if (!data.success) { alert('Erro ao carregar itens.'); return; }
               const tbody = box.querySelector('tbody');
-              tbody.innerHTML = (data.itens || []).map(i => `
+              const itens = data.itens || [];
+              const linhas = itens.map(i => `
                 <tr>
                   <td>${i.nome || i.procod}</td>
                   <td>${i.qtd} ${i.und || ''}</td>
@@ -543,6 +552,14 @@
                   <td>R$ ${Number(i.vlrtot).toFixed(2)}</td>
                 </tr>
               `).join('');
+              // Total dos itens (sem taxa de entrega)
+              const totalItens = itens.reduce((acc, it) => acc + Number(it.vlrtot || 0), 0);
+              const totalRow = `
+                <tr class="total-itens-row">
+                  <td colspan="3" style="text-align:right;font-weight:700;">TOTAL DOS ITENS</td>
+                  <td style="font-weight:700;">R$ ${totalItens.toFixed(2)}</td>
+                </tr>`;
+              tbody.innerHTML = linhas + totalRow;
               box.dataset.loaded = '1';
               box.style.display = 'block';
             })

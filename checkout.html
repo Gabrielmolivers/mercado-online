@@ -405,7 +405,10 @@
             .then(data => {
               if (data.success) {
                 alert('Pedido confirmado com sucesso!');
+                // Limpa apenas o carrinho, preservando sessão do usuário
                 localStorage.removeItem('carrinho');
+                // Dispara evento para atualizar badge/header antes do redirect
+                window.dispatchEvent(new Event('storage'));
                 window.location.href = 'index.html';
               } else {
                 alert('Erro ao confirmar pedido: ' + (data.error || 'Tente novamente.'));
