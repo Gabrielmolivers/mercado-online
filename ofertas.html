@@ -7,43 +7,17 @@
   <link rel="icon" type="image/svg+xml" href="image/favicon.svg" />
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <script src="js/env.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/script.js" defer></script>
   <style>
-    .ofertas-section h2 { color: var(--blue); font-size: 2.4rem; margin-bottom: 1rem; }
     #ofertas-lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 1.2rem; }
   </style>
+  <script src="js/env.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/layout.js" defer></script>
+  <script src="js/script.js" defer></script>
+  <script src="js/ofertas.js" defer></script>
 </head>
 <body>
-  <header class="header">
-    <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
-    <nav class="navbar">
-      <a href="produtos.html">Produtos</a>
-      <a href="departamentos.html">Departamentos</a>
-      <a href="carrinho.html">Carrinho</a>
-    </nav>
-    <div class="icons">
-      <div id="search-btn" class="fas fa-search"></div>
-      <div id="cart-btn" class="fas fa-shopping-cart"></div>
-      <div id="login-btn" class="fas fa-user"></div>
-      <div id="menu-btn" class="fas fa-bars"></div>
-    </div>
-    <form class="search-form">
-      <input type="text" id="search-box" placeholder="Buscar produtos...">
-      <label for="search-box" class="fas fa-search"></label>
-    </form>
-    <div class="shopping-cart"></div>
-    <form action="#" class="login-form">
-      <h3 id="login-title">Olá, visitante</h3>
-      <input type="email" placeholder="Email" required>
-      <input type="password" placeholder="Senha" required>
-      <a href="#">Esqueceu a senha?</a>
-      <button type="submit" class="btn">Entrar</button>
-      <button type="button" class="criar-btn" onclick="window.location.href='cadastro.html'">Criar uma Conta</button>
-    </form>
-  </header>
-
+  <header class="header"></header>
   <main class="ofertas-section" style="max-width:1200px;margin:2rem auto;padding:0 1rem;">
     <h2>Ofertas</h2>
     <div id="loader" style="display:none; justify-content:center; align-items:center; margin:2rem 0;">
@@ -52,11 +26,6 @@
     <div id="ofertas-lista"></div>
     <div id="paginacao"></div>
   </main>
-
-  <footer>
-    <p>&copy; 2025 Control Power. Todos os direitos reservados.</p>
-  </footer>
-
-  <script src="js/ofertas.js"></script>
+  <footer></footer>
 </body>
 </html>

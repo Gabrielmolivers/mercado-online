@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="js/env.js"></script>
   <script src="js/config.js"></script>
+  <script src="js/layout.js" defer></script>
   <script src="js/script.js" defer></script>
   <style>
     .perfil-container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
@@ -40,39 +41,20 @@
   .pill.status-aberto { background:#ffe58f; color:#7a5900; }
   .pill.status-finalizado { background:#28a745; color:#fff; }
   .pill.status-cancelado { background:#dc3545; color:#fff; }
+  /* Detalhes do pedido em linhas */
+  .pedido-detalhes { margin-top:.4rem; text-transform: uppercase; }
+  .pedido-info { margin:.2rem 0; color:#444; font-size:1.2rem; }
+  .contato-btn { background:var(--blue); border:none; }
+  .contato-btn:hover { background:#130f40; }
+  .contato-btn i { margin-right:.4rem; color:#25D366; }
+  .pedido-info strong { color:#333; }
     .paginacao { display:flex; gap:.4rem; justify-content:center; align-items:center; margin-top:1rem; flex-wrap:wrap; }
     .paginacao button { background:#fff; border:1px solid var(--blue); color:var(--blue); padding:.4rem .8rem; border-radius:.4rem; cursor:pointer; font-weight:600; }
     .paginacao button.active { background:var(--blue); color:#fff; }
   </style>
 </head>
 <body>
-  <header class="header">
-    <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
-    <nav class="navbar">
-      <a href="produtos.html">Produtos</a>
-      <a href="departamentos.html">Departamentos</a>
-      <a href="carrinho.html">Carrinho</a>
-    </nav>
-    <div class="icons">
-      <div id="search-btn" class="fas fa-search"></div>
-      <div id="cart-btn" class="fas fa-shopping-cart"></div>
-      <div id="login-btn" class="fas fa-user"></div>
-      <div id="menu-btn" class="fas fa-bars"></div>
-    </div>
-    <form class="search-form">
-      <input type="text" id="search-box" placeholder="Buscar produtos...">
-      <label for="search-box" class="fas fa-search"></label>
-    </form>
-    <div class="shopping-cart"></div>
-    <form action="#" class="login-form">
-      <h3 id="login-title">Olá, visitante</h3>
-      <input type="email" placeholder="Email" required>
-      <input type="password" placeholder="Senha" required>
-      <a href="#">Esqueceu a senha?</a>
-      <button type="submit" class="btn">Entrar</button>
-      <button type="button" class="criar-btn" onclick="window.location.href='cadastro.html'">Criar uma Conta</button>
-    </form>
-  </header>
+  <header class="header"></header>
 
   <main class="perfil-container">
     <h1>Meu Perfil</h1>
@@ -142,9 +124,7 @@
     </section>
   </main>
 
-  <footer>
-    <p>&copy; 2025 Control Power. Todos os direitos reservados.</p>
-  </footer>
+  <footer></footer>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -156,10 +136,12 @@
       }
 
       // Carrega dados do cliente mais atualizados do servidor
+      let nomeClienteGlobal = '';
       fetch(apiUrl(`/api/cliente/${usuario.id}`))
         .then(r => r.json())
         .then(data => {
           const cli = (data && data.success && data.cliente) ? data.cliente : usuario;
+          nomeClienteGlobal = (cli.NOME || cli.nome || usuario?.nome || '').toString();
           document.getElementById('cli-nome').textContent = cli.NOME || cli.nome || '-';
           document.getElementById('cli-email').textContent = cli.EMAIL || cli.email || '-';
           document.getElementById('cli-telefone').textContent = cli.TELEFONE || cli.CELULAR || cli.telefone || cli.celular || '-';
@@ -260,10 +242,8 @@
       function formatDateBr(ymd){
         if (!ymd) return '-';
         const s = String(ymd);
-        // recebe YYYY-MM-DD e retorna DD/MM/YYYY
         const m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
         if (m) return `${m[3]}/${m[2]}/${m[1]}`;
-        // fallback: tenta DD/MM/YYYY já pronto
         const m2 = s.match(/(\d{2})\/(\d{2})\/(\d{4})/);
         if (m2) return `${m2[1]}/${m2[2]}/${m2[3]}`;
         return s;
@@ -312,16 +292,34 @@
           if (flag === 'F') { statusTxt = 'FINALIZADO'; statusClass = 'status-finalizado'; }
           else if (flag === 'C') { statusTxt = 'CANCELADO'; statusClass = 'status-cancelado'; }
           const numCli = numeroClienteMap[String(p.idpedido)] || p.idpedido;
+          // Extrai dados estruturados da observação
+          const obsRaw = (p.obs || '').toString().replace(/\r/g,'');
+          const trocoM = obsRaw.match(/TROCO\s*PARA:\s*([^\n]+)/i);
+          const entrM = obsRaw.match(/ENTREGA:\s*([^\n]+)/i);
+          let trocoTxt = trocoM ? trocoM[1].trim() : '';
+          let taxaEntregaTxt = entrM ? entrM[1].trim() : '';
+          // remove anotação entre parênteses da taxa, se houver
+          taxaEntregaTxt = taxaEntregaTxt.replace(/\s*\(.*\)\s*$/, '').trim();
+          let obsLimpa = obsRaw
+            .replace(/TROCO\s*PARA:[^\n]*\n?/ig,'')
+            .replace(/ENTREGA:[^\n]*\n?/ig,'')
+            .trim();
+          const entregaEmTxt = [p.end_entrega,p.bai_entrega,p.num_entrega].filter(Boolean).join(', ');
           div.innerHTML = `
             <div class="pedido-top">
               <h3>#${numCli} <span class="pedido-id">PEDIDO ${p.idpedido}</span></h3>
               <div class="pedido-meta">${formatDateBr(p.data)} às ${formatHoraBRT2(p.data, p.hora)} · <span class="pill">${tipo}</span> · <span class="pill">${meio}</span> · <span class="pill status-pill ${statusClass}">${statusTxt}</span></div>
               <div class="pedido-total">Total: R$ ${Number(p.total).toFixed(2)}</div>
             </div>
-            ${p.obs ? `<div style=\"margin-top:.4rem; color:#444;\">Obs: ${p.obs}</div>` : ''}
-            ${String(p.tipo_entrega) === '2' ? `<div style=\"margin-top:.2rem; color:#666; font-size:1.2rem;\">Entrega em: ${[p.end_entrega,p.bai_entrega,p.num_entrega].filter(Boolean).join(', ')}</div>` : ''}
-            <div class="pedido-acoes" style="margin-top:.8rem;">
+            <div class="pedido-detalhes">
+              ${obsLimpa ? `<div class=\"pedido-info\"><strong>OBS:</strong> ${obsLimpa}</div>` : ''}
+              ${trocoTxt ? `<div class=\"pedido-info\"><strong>TROCO PARA:</strong> ${trocoTxt}</div>` : ''}
+              ${taxaEntregaTxt ? `<div class=\"pedido-info\"><strong>TAXA DE ENTREGA:</strong> ${taxaEntregaTxt}</div>` : ''}
+              ${String(p.tipo_entrega) === '2' && entregaEmTxt ? `<div class=\"pedido-info\"><strong>ENTREGA EM:</strong> ${entregaEmTxt}</div>` : ''}
+            </div>
+            <div class="pedido-acoes" style="margin-top:.8rem; display:flex; gap:.6rem; flex-wrap:wrap;">
               <button class="btn ver-itens-btn" data-id="${p.idpedido}">Ver itens</button>
+              <button class="btn contato-btn" data-id="${p.idpedido}" data-num="${numCli}" data-ped="${p.idpedido}"><i class="fab fa-whatsapp"></i> Conversar com a empresa</button>
             </div>
             <div class="pedido-itens" id="itens-${p.idpedido}">
               <table>
@@ -522,33 +520,67 @@
       // Delegação: abrir/fechar e carregar itens do pedido
       document.addEventListener('click', function(ev){
         const btn = ev.target.closest('.ver-itens-btn');
-        if (!btn) return;
-        const id = btn.getAttribute('data-id');
-        const box = document.getElementById(`itens-${id}`);
-        if (!box) return;
-        if (box.dataset.loaded === '1') {
-          // toggle
-          box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
-          return;
+        const contact = ev.target.closest('.contato-btn');
+        if (!btn && !contact) return;
+        if (btn) {
+          const id = btn.getAttribute('data-id');
+          const box = document.getElementById(`itens-${id}`);
+          if (!box) return;
+          if (box.dataset.loaded === '1') {
+            box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+            return;
+          }
+          fetch(apiUrl(`/api/pedidos/${id}/itens`))
+            .then(r => r.json())
+            .then(data => {
+              if (!data.success) { alert('Erro ao carregar itens.'); return; }
+              const tbody = box.querySelector('tbody');
+              tbody.innerHTML = (data.itens || []).map(i => `
+                <tr>
+                  <td>${i.nome || i.procod}</td>
+                  <td>${i.qtd} ${i.und || ''}</td>
+                  <td>R$ ${Number(i.vlruni).toFixed(2)}</td>
+                  <td>R$ ${Number(i.vlrtot).toFixed(2)}</td>
+                </tr>
+              `).join('');
+              box.dataset.loaded = '1';
+              box.style.display = 'block';
+            })
+            .catch(() => alert('Erro ao carregar itens.'));
+        } else if (contact) {
+          const id = contact.getAttribute('data-id');
+          const numCli = contact.getAttribute('data-num');
+          const nome = (nomeClienteGlobal || '').trim();
+          const msg = `Olá, meu nome é ${nome}. Gostaria de falar sobre o PEDIDO ${id} (#${numCli}).`;
+          // Usa número dinâmico de PARAMETROS
+          const phoneRaw = (window.__PARAMS__?.celular || '').replace(/\D/g,'');
+          const phone = phoneRaw.length >= 10 ? `55${phoneRaw.slice(-11)}`.replace(/^55(55)/,'55') : '5543999999999';
+          const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+          window.open(url, '_blank');
         }
-        fetch(apiUrl(`/api/pedidos/${id}/itens`))
-          .then(r => r.json())
-          .then(data => {
-            if (!data.success) { alert('Erro ao carregar itens.'); return; }
-            const tbody = box.querySelector('tbody');
-            tbody.innerHTML = (data.itens || []).map(i => `
-              <tr>
-                <td>${i.nome || i.procod}</td>
-                <td>${i.qtd} ${i.und || ''}</td>
-                <td>R$ ${Number(i.vlruni).toFixed(2)}</td>
-                <td>R$ ${Number(i.vlrtot).toFixed(2)}</td>
-              </tr>
-            `).join('');
-            box.dataset.loaded = '1';
-            box.style.display = 'block';
-          })
-          .catch(() => alert('Erro ao carregar itens.'));
       });
+
+      // Carrega parâmetros para WhatsApp e (futuramente) footer
+      fetch(apiUrl('/api/parametros'))
+        .then(r=>r.json())
+        .then(data => {
+          if (data.success && data.parametros) {
+            window.__PARAMS__ = data.parametros;
+            const f = document.getElementById('footer-dynamic');
+            if (f) {
+              const ano = new Date().getFullYear();
+              const nome = data.parametros.razao || 'Mercado Online';
+              // Atualiza primeira linha do parágrafo
+              f.innerHTML = `© ${ano} ${nome}. Todos os direitos reservados.<br> <span id="footer-empresa-razao"></span> | CNPJ: <span id="footer-empresa-cnpj"></span> | IE: <span id="footer-empresa-ie"></span>`;
+              // Preenche dados detalhados
+              const maskCNPJ = (v)=>{ const s=String(v||'').replace(/\D/g,''); return s.length===14? s.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5') : (v||''); };
+              const cnpjEl = document.getElementById('footer-empresa-cnpj'); if (cnpjEl) cnpjEl.textContent = maskCNPJ(data.parametros.cnpj||'');
+              const razaoEl = document.getElementById('footer-empresa-razao'); if (razaoEl) razaoEl.textContent = data.parametros.razao || '';
+              const ieEl = document.getElementById('footer-empresa-ie'); if (ieEl) ieEl.textContent = data.parametros.ie || '';
+            }
+          }
+        })
+        .catch(()=>{});
     });
   </script>
 </body>

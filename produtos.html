@@ -18,7 +18,8 @@
         justify-content: center;
     }
 
-    .box {
+    /* Escopo somente para os cards de produtos para não afetar o footer */
+    #produtos-lista .box {
         flex: 1 1 18%;
         max-width: 18%;
         min-width: 18%;
@@ -27,7 +28,7 @@
 
     /* Abaixo de 630px: mostrar apenas 2 produtos por linha */
     @media (max-width: 630px) {
-        .box {
+        #produtos-lista .box {
             flex: 1 1 48%;
             max-width: 48%;
             min-width: 48%;
@@ -39,7 +40,7 @@
             gap: 1rem;
         }
 
-        .box {
+        #produtos-lista .box {
             flex: 1 1 48%;
             max-width: 48%;
             min-width: 48%;
@@ -61,45 +62,7 @@
 </head>
 
 <body>
-    <header class="header">
-        <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
-        <nav class="navbar">
-            <a href="maisvendidos" style="text-decoration: line-through;">Mais Vendidos</a>
-            <a href="ofertas.html">Ofertas</a>
-            <a href="produtos.html">Produtos</a>
-            <a href="departamentos.html">Departamentos</a>
-            <a href="contato" style="text-decoration: line-through;">Contato</a>
-        </nav>
-
-        <div class="icons">
-            <div id="search-btn" class="fas fa-search"></div>
-            <div id="cart-btn" class="fas fa-shopping-cart"></div>
-            <div id="login-btn" class="fas fa-user"></div>
-            <div id="menu-btn" class="fas fa-bars"></div>
-
-        </div>
-
-        <form class="search-form">
-            <input type="text" id="search-box" placeholder="Buscar produtos...">
-            <label for="search-box" class="fas fa-search"></label>
-        </form>
-
-        <div class="shopping-cart">
-            
-            <a href="#" class="btn">Finalizar Compra</a>
-        </div>
-
-        <form action="#" class="login-form">
-            <h3 id="login-title">Olá, visitante</h3>
-            <input type="email" placeholder="Email" required>
-            <input type="password" placeholder="Senha" required>
-            <a href="#">Esqueceu a senha?</a>
-            <button type="submit" class="btn">Entrar</button>
-            <button type="button" class="criar-btn" onclick="window.location.href='cadastro.html'">Criar uma
-                Conta</button>
-        </form>
-
-    </header>
+    <header class="header"></header>
     <section class="produtos-section">
         <h2>Produtos</h2>
         <div id="filtros" style="margin-bottom: 1rem;">
@@ -125,10 +88,10 @@
         <div id="paginacao" style="margin: 2rem auto; display: flex; justify-content: center; align-items: center; gap: 1rem;"></div>
         <a href="index.html">Voltar para o início</a>
     </section>
+    <footer></footer>
 
-    <script src="js/env.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/script.js"></script>
+    <script src="js/layout.js" defer></script>
+    <script src="js/script.js" defer></script>
     <script src="js/produtos.js"></script>
 
 <script>
@@ -184,7 +147,6 @@ window.addEventListener('DOMContentLoaded', function(){
         }
 
         window.addEventListener('DOMContentLoaded', carregarProdutos);
-    </script>
     </script>
 </body>
 

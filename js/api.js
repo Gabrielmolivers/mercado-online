@@ -73,6 +73,9 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 // Cache de categorias
 let categoriasCache = null;
 let categoriasCacheAt = 0;
+// Cache de parâmetros (empresa, entrega, etc.)
+let parametrosCache = null;
+let parametrosCacheAt = 0;
 
 // ...existing code...
 // Rota para buscar dados completos do cliente
@@ -406,6 +409,59 @@ router.get('/conectar', (req, res) => {
 });
 
 
+// Rota para parâmetros da empresa (entrega, mínimo, contato, etc.)
+router.get('/parametros', (req, res) => {
+  const now = Date.now();
+  if (parametrosCache && (now - parametrosCacheAt < CACHE_TTL)) {
+    return res.json({ success: true, parametros: parametrosCache });
+  }
+  connection.conectar((err, db) => {
+    if (err) {
+      // Fallback: retorna defaults quando não conseguir conectar
+      return res.json({ success: true, parametros: {
+        razao: 'Mercado Online', cnpj: '', ie: '', endereco: '', bairro: '', numero: '', cidade: '', uf: '', celular: '',
+        vlr_entrega: 5, vlr_pedminimo: 50
+      }});
+    }
+    const sql = 'SELECT FIRST 1 RAZAO, CNPJ, IE, ENDERECO, BAIRRO, NUMERO, CIDADE, UF, CELULAR, VLR_ENTREGA, VLR_PEDMINIMO FROM PARAMETROS';
+    db.query(sql, [], (qerr, result = []) => {
+      db.detach(() => {});
+      if (qerr || !result || result.length === 0) {
+        // Tabela ausente ou vazia: retorna defaults
+        parametrosCache = {
+          razao: 'Mercado Online', cnpj: '', ie: '', endereco: '', bairro: '', numero: '', cidade: '', uf: '', celular: '',
+          vlr_entrega: 5, vlr_pedminimo: 50
+        };
+        parametrosCacheAt = Date.now();
+        return res.json({ success: true, parametros: parametrosCache });
+      }
+      const r = result[0] || {};
+      const toNum = (v) => {
+        if (v === null || v === undefined) return 0;
+        if (typeof v === 'number') return v;
+        const s = String(v).replace(',', '.');
+        const n = parseFloat(s);
+        return isNaN(n) ? 0 : n;
+      };
+      parametrosCache = {
+        razao: r.RAZAO || '',
+        cnpj: r.CNPJ || '',
+        ie: r.IE || '',
+        endereco: r.ENDERECO || '',
+        bairro: r.BAIRRO || '',
+        numero: r.NUMERO || '',
+        cidade: r.CIDADE || '',
+        uf: r.UF || '',
+        celular: r.CELULAR || '',
+        vlr_entrega: toNum(r.VLR_ENTREGA),
+        vlr_pedminimo: toNum(r.VLR_PEDMINIMO)
+      };
+      parametrosCacheAt = Date.now();
+      res.json({ success: true, parametros: parametrosCache });
+    });
+  });
+});
+
 
 // Rota para finalizar compra
 router.post('/finalizar-compra', express.json(), (req, res) => {
@@ -418,8 +474,34 @@ router.post('/finalizar-compra', express.json(), (req, res) => {
     if (err) {
       return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco.' });
     }
-    // Cria novo pedido
-    db.query('SELECT MAX(IDPEDIDO) AS MAX_ID FROM PEDIDOS', [], (err, result) => {
+    // Detecta colunas opcionais na tabela PEDIDOS (FLAG, VLR_ENTREGA)
+    const colsSql = "SELECT TRIM(RDB$FIELD_NAME) AS FIELD FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = 'PEDIDOS' AND RDB$FIELD_NAME IN ('FLAG','VLR_ENTREGA')";
+    db.query(colsSql, [], (chkErr, colRes = []) => {
+      const fields = Array.isArray(colRes) ? colRes.map(r => (r.FIELD || r.RDB$FIELD_NAME || '').trim()) : [];
+      const hasFlag = fields.includes('FLAG');
+      const hasVlrEntrega = fields.includes('VLR_ENTREGA');
+      // Calcula subtotal dos itens e taxa de entrega
+      const subtotal = (itens || []).reduce((acc, it) => acc + (Number(it.preco) * (it.qtd || 1)), 0);
+      // Busca parâmetros (com fallback 50/5) para calcular entrega
+      const getParamsSql = 'SELECT FIRST 1 VLR_ENTREGA, VLR_PEDMINIMO FROM PARAMETROS';
+      db.query(getParamsSql, [], (perr, pres = []) => {
+        let pedMin = 50;
+        let vlrEnt = 5;
+        if (!perr && pres && pres.length > 0) {
+          const toNum = (v) => {
+            if (v === null || v === undefined) return 0;
+            if (typeof v === 'number') return v;
+            const s = String(v).replace(',', '.');
+            const n = parseFloat(s);
+            return isNaN(n) ? 0 : n;
+          };
+          pedMin = toNum(pres[0].VLR_PEDMINIMO) || 0;
+          vlrEnt = toNum(pres[0].VLR_ENTREGA) || 0;
+          if (pedMin <= 0) pedMin = 50;
+        }
+        const entregaFee = String(cliente.tipo_entrega) === '2' && subtotal < pedMin ? vlrEnt : 0;
+      // Cria novo pedido
+      db.query('SELECT MAX(IDPEDIDO) AS MAX_ID FROM PEDIDOS', [], (err, result) => {
       if (err) {
         db.detach();
         return res.status(500).json({ success: false, error: 'Erro ao buscar último IDPED.' });
@@ -435,11 +517,17 @@ router.post('/finalizar-compra', express.json(), (req, res) => {
       const clie_numentrega = cliente.numero || '';
       const tipo_entrega = cliente.tipo_entrega || '';
       const meio_pagto = cliente.meio_pagto || '';
-      const obs = cliente.obs || '';
-      // Inclui FLAG (status do pedido): 'A' = ABERTO inicial
-      db.query(
-        'INSERT INTO PEDIDOS (IDPEDIDO, DTPEDIDO, HRPEDIDO, CLIE_COD, CLIE_ENDENTREGA, CLIE_BAIENTREGA, CLIE_NUMENTREGA, TIPO_ENTREGA, MEIO_PAGTO, OBS, FLAG) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [novoId, dtped, hrped, clie_cod, clie_endentrega, clie_baientrega, clie_numentrega, tipo_entrega, meio_pagto, obs, 'A'],
+        const obs = cliente.obs || '';
+        // Monta INSERT dinâmico considerando FLAG e VLR_ENTREGA
+        let cols = 'IDPEDIDO, DTPEDIDO, HRPEDIDO, CLIE_COD, CLIE_ENDENTREGA, CLIE_BAIENTREGA, CLIE_NUMENTREGA, TIPO_ENTREGA, MEIO_PAGTO, OBS';
+        let ph   = '?, ?, ?, ?, ?, ?, ?, ?, ?, ?';
+        const params = [novoId, dtped, hrped, clie_cod, clie_endentrega, clie_baientrega, clie_numentrega, tipo_entrega, meio_pagto, obs];
+        if (hasFlag) { cols += ', FLAG'; ph += ', ?'; params.push('A'); }
+        if (hasVlrEntrega) { cols += ', VLR_ENTREGA'; ph += ', ?'; params.push(entregaFee); }
+        const insertSql = `INSERT INTO PEDIDOS (${cols}) VALUES (${ph})`;
+        db.query(
+          insertSql,
+          params,
         (err) => {
           if (err) {
             db.detach();
@@ -469,6 +557,8 @@ router.post('/finalizar-compra', express.json(), (req, res) => {
           });
         }
       );
+      });
+      });
     });
   });
 });
@@ -499,17 +589,27 @@ router.get('/cliente/:id/pedidos', (req, res) => {
   if (!id) return res.status(400).json({ success: false, error: 'ID inválido' });
   connection.conectar((err, db) => {
     if (err) return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco' });
-    const sql = `
-      SELECT p.IDPEDIDO, p.DTPEDIDO, p.HRPEDIDO, p.TIPO_ENTREGA, p.MEIO_PAGTO, p.OBS,
-             p.CLIE_ENDENTREGA, p.CLIE_BAIENTREGA, p.CLIE_NUMENTREGA, p.FLAG,
-             COALESCE(SUM(i.VLRTOT), 0) AS TOTAL
-        FROM PEDIDOS p
-        LEFT JOIN PEDIDOS_ITENS i ON i.IDPEDIDO = p.IDPEDIDO
-       WHERE p.CLIE_COD = ?
-       GROUP BY p.IDPEDIDO, p.DTPEDIDO, p.HRPEDIDO, p.TIPO_ENTREGA, p.MEIO_PAGTO, p.OBS,
-                p.CLIE_ENDENTREGA, p.CLIE_BAIENTREGA, p.CLIE_NUMENTREGA, p.FLAG
-       ORDER BY p.DTPEDIDO DESC, p.HRPEDIDO DESC`;
-    db.query(sql, [id], (err, result) => {
+    // Detecta colunas opcionais (FLAG e VLR_ENTREGA)
+    const colsSql = "SELECT TRIM(RDB$FIELD_NAME) AS FIELD FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = 'PEDIDOS' AND RDB$FIELD_NAME IN ('FLAG','VLR_ENTREGA')";
+    db.query(colsSql, [], (chkErr, colRes = []) => {
+      const fields = Array.isArray(colRes) ? colRes.map(r => (r.FIELD || r.RDB$FIELD_NAME || '').trim()) : [];
+      const hasFlag = fields.includes('FLAG');
+      const hasVlrEntrega = fields.includes('VLR_ENTREGA');
+      const selFlag = hasFlag ? ', p.FLAG' : '';
+      const grpFlag = hasFlag ? ', p.FLAG' : '';
+      const selVlr = hasVlrEntrega ? ', p.VLR_ENTREGA' : '';
+      const totalExpr = hasVlrEntrega ? 'COALESCE(SUM(i.VLRTOT), 0) + COALESCE(p.VLR_ENTREGA, 0)' : 'COALESCE(SUM(i.VLRTOT), 0)';
+      const sql = `
+        SELECT p.IDPEDIDO, p.DTPEDIDO, p.HRPEDIDO, p.TIPO_ENTREGA, p.MEIO_PAGTO, p.OBS,
+               p.CLIE_ENDENTREGA, p.CLIE_BAIENTREGA, p.CLIE_NUMENTREGA${selFlag}${selVlr},
+               ${totalExpr} AS TOTAL
+          FROM PEDIDOS p
+          LEFT JOIN PEDIDOS_ITENS i ON i.IDPEDIDO = p.IDPEDIDO
+         WHERE p.CLIE_COD = ?
+         GROUP BY p.IDPEDIDO, p.DTPEDIDO, p.HRPEDIDO, p.TIPO_ENTREGA, p.MEIO_PAGTO, p.OBS,
+                  p.CLIE_ENDENTREGA, p.CLIE_BAIENTREGA, p.CLIE_NUMENTREGA${grpFlag}${hasVlrEntrega ? ', p.VLR_ENTREGA' : ''}
+         ORDER BY p.DTPEDIDO DESC, p.HRPEDIDO DESC`;
+      db.query(sql, [id], (err, result) => {
       db.detach(() => {});
       if (err) return res.status(500).json({ success: false, error: 'Erro ao buscar pedidos' });
       const pedidos = (result || []).map(r => ({
@@ -522,10 +622,12 @@ router.get('/cliente/:id/pedidos', (req, res) => {
         end_entrega: r.CLIE_ENDENTREGA,
         bai_entrega: r.CLIE_BAIENTREGA,
         num_entrega: r.CLIE_NUMENTREGA,
-        flag: r.FLAG, // 'A','F','C' etc
+        flag: r.FLAG, // pode ser undefined se coluna não existir
+        vlr_entrega: r.VLR_ENTREGA || 0,
         total: Number(r.TOTAL || 0)
       }));
       res.json({ success: true, pedidos });
+    });
     });
   });
 });

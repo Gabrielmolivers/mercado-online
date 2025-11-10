@@ -9,39 +9,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="js/env.js"></script>
     <script src="js/config.js"></script>
+    <script src="js/layout.js" defer></script>
     <script src="js/script.js" defer></script>
     <script src="js/carrinho.js" defer></script>
 </head>
 <body>
-    <header class="header">
-        <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
-        <nav class="navbar">
-            <a href="maisvendidos" style="text-decoration: line-through;">Mais Vendidos</a>
-            <a href="ofertas.html">Ofertas</a>
-            <a href="produtos.html">Produtos</a>
-            <a href="departamentos.html">Departamentos</a>
-            <a href="contato" style="text-decoration: line-through;">Contato</a>
-        </nav>
-        <div class="icons">
-            <div id="search-btn" class="fas fa-search"></div>
-            <div id="cart-btn" class="fas fa-shopping-cart"></div>
-            <div id="login-btn" class="fas fa-user"></div>
-            <div id="menu-btn" class="fas fa-bars"></div>
-        </div>
-        <form class="search-form">
-            <input type="text" id="search-box" placeholder="Buscar produtos...">
-            <label for="search-box" class="fas fa-search"></label>
-        </form>
-        <div class="shopping-cart"></div>
-        <form action="#" class="login-form">
-            <h3 id="login-title">Olá, visitante</h3>
-            <input type="email" placeholder="Email" required>
-            <input type="password" placeholder="Senha" required>
-            <a href="#">Esqueceu a senha?</a>
-            <button type="submit" class="btn">Entrar</button>
-            <button type="button" class="criar-btn" onclick="window.location.href='cadastro.html'">Criar uma Conta</button>
-        </form>
-    </header>
+    <header class="header"></header>
 
     <main>
         <section class="carrinho-section" style="max-width:900px;margin:2rem auto;background:#fff;border-radius:.5rem;box-shadow:0 .1rem 1rem rgba(0,0,0,.12);padding:1rem;">
@@ -55,9 +28,7 @@
         </section>
     </main>
 
-    <footer>
-        <p>&copy; 2025 Control Power. Todos os direitos reservados.</p>
-    </footer>
+    <footer></footer>
 
     <script>
         // Integrações da página com mini-carrinho do header e fluxo de checkout

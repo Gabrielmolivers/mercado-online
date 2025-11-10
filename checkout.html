@@ -61,16 +61,7 @@
   </style>
 </head>
 <body>
-  <header class="header">
-    <a href="index.html" class="logo"><i class="fas fa-shopping-basket"></i> Mercado Online</a>
-    <nav class="navbar">
-      <a href="produtos.html">Produtos</a>
-      <a href="carrinho.html">Carrinho</a>
-    </nav>
-    <div class="icons">
-      <div id="menu-btn" class="fas fa-bars"></div>
-    </div>
-  </header>
+  <header class="header"></header>
 
   <main class="checkout-container">
     <h1>Checkout</h1>
@@ -136,14 +127,29 @@
     </section>
   </main>
 
-  <footer>
-    <p>&copy; 2025 Control Power. Todos os direitos reservados.</p>
-  </footer>
+  <footer></footer>
 
   <script src="js/env.js"></script>
   <script src="js/config.js"></script>
+  <script src="js/layout.js" defer></script>
+  <script src="js/script.js" defer></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Atualiza footer com parâmetros
+      fetch(apiUrl('/api/parametros'))
+        .then(r=>r.json())
+        .then(data => {
+          if (data.success && data.parametros) {
+            window.__PARAMS__ = data.parametros;
+            const f = document.getElementById('footer-dynamic');
+            if (f) {
+              const ano = new Date().getFullYear();
+              const nome = data.parametros.razao || 'Mercado Online';
+              f.textContent = `© ${ano} ${nome}. Todos os direitos reservados.`;
+            }
+          }
+        })
+        .catch(()=>{});
       // Exigir login
       const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
       if (!usuario || !usuario.id) {
@@ -174,9 +180,29 @@
         itensEl.appendChild(div);
       });
       // Inicializa totais (subtotal + possível frete)
+      // Parâmetros dinâmicos (cache local)
+      let PARAMS = { vlr_pedminimo: 50, vlr_entrega: 5 };
+      function carregarParametros(){
+        fetch(apiUrl('/api/parametros'))
+          .then(r => r.json())
+          .then(data => {
+            if (data.success && data.parametros) {
+              PARAMS.vlr_pedminimo = Number(data.parametros.vlr_pedminimo) || PARAMS.vlr_pedminimo;
+              PARAMS.vlr_entrega = Number(data.parametros.vlr_entrega) || PARAMS.vlr_entrega;
+              // Atualiza texto da mensagem de frete
+              const msg = document.getElementById('msg-frete');
+              if (msg) {
+                msg.innerHTML = `Para pedidos abaixo de R$ ${PARAMS.vlr_pedminimo.toFixed(2)} será cobrada taxa de entrega de R$ ${PARAMS.vlr_entrega.toFixed(2)}.`;
+              }
+              aplicarFreteUI();
+            }
+          })
+          .catch(()=>{});
+      }
+      carregarParametros();
       function aplicarFreteUI(){
-        const freteMin = 50;
-        const freteValor = 5;
+        const freteMin = PARAMS.vlr_pedminimo;
+        const freteValor = PARAMS.vlr_entrega;
         const entregar = entregaSelect.value === '2';
         const precisaFrete = entregar && total < freteMin;
         entregaTaxaAtual = precisaFrete ? freteValor : 0;
@@ -286,7 +312,7 @@
   const sel = document.getElementById('pagto-select');
   const meioPagto = sel ? sel.value : 'D'; // D=Dinheiro, C=Cartão, P=PIX
   // Recalcula taxa de entrega no momento do envio
-  const taxaEntrega = (document.getElementById('entrega-select')?.value === '2' && total < 50) ? 5 : 0;
+  const taxaEntrega = (document.getElementById('entrega-select')?.value === '2' && total < PARAMS.vlr_pedminimo) ? PARAMS.vlr_entrega : 0;
   const totalPagar = total + taxaEntrega;
         // Se pagamento for DINHEIRO, exigir TROCO PARA preenchido (> 0)
         if (meioPagto === 'D') {
@@ -353,7 +379,7 @@
             }
             // Observação de frete (informativo)
             if (taxaEntrega > 0) {
-              const linhaFrete = `ENTREGA: R$ ${taxaEntrega.toFixed(2)} (pedido abaixo de R$ 50,00)`;
+              const linhaFrete = `ENTREGA: R$ ${taxaEntrega.toFixed(2)} (pedido abaixo de R$ ${PARAMS.vlr_pedminimo.toFixed(2)})`;
               obsBase = obsBase ? `${obsBase}\n${linhaFrete}` : linhaFrete;
             } else if (document.getElementById('entrega-select')?.value === '2') {
               const linhaFrete = `ENTREGA: Grátis`;
