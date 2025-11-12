@@ -16,17 +16,27 @@
 <body>
     <header class="header"></header>
 
-    <main>
-        <section class="carrinho-section" style="max-width:900px;margin:2rem auto;background:#fff;border-radius:.5rem;box-shadow:0 .1rem 1rem rgba(0,0,0,.12);padding:1rem;">
-            <h1>Meu Carrinho</h1>
-            <div id="carrinho-lista"></div>
-            <div id="carrinho-total" class="total" style="margin-top:1rem;"></div>
-            <div style="margin-top:1rem;display:flex;gap:1rem;">
-                <a class="btn" href="produtos.html">Continuar comprando</a>
-                <button class="btn" id="finalizar-compra">Finalizar Compra</button>
-            </div>
-        </section>
-    </main>
+        <main>
+                <section class="carrinho-section" style="max-width:980px;margin:2rem auto;background:#fff;border-radius:1rem;box-shadow:0 .1rem 1rem rgba(0,0,0,.12);padding:1.2rem;">
+                        <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.6rem;">
+                            <i class="fas fa-shopping-basket" style="color:var(--blue);"></i>
+                            <h1 style="margin:0;font-size:2.2rem;color:#130f40;">Meu Carrinho</h1>
+                        </div>
+                        <div id="cart-hints" class="cart-hints" style="display:none;"></div>
+                        <div id="carrinho-lista" class="cart-grid"></div>
+                        <div id="carrinho-total" class="total" style="margin-top:1rem;"></div>
+                        <div class="resumo-bar" style="margin-top:1.2rem;display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between;background:#f5f7fb;border:1px solid #e3eefc;padding:1rem;border-radius:.8rem;">
+                            <div style="display:flex;align-items:center;gap:.8rem;">
+                                <span style="font-weight:700;color:#130f40;">Total:</span>
+                                <span id="total-pagar" style="font-weight:800;color:var(--blue);font-size:1.8rem;">R$ 0,00</span>
+                            </div>
+                            <div style="display:flex;gap:.8rem;">
+                                <a class="btn" href="produtos.html">Continuar comprando</a>
+                                <button class="btn" id="finalizar-compra"><i class="fas fa-check"></i>&nbsp;Finalizar Compra</button>
+                            </div>
+                        </div>
+                </section>
+        </main>
 
     <footer></footer>
 
@@ -35,18 +45,31 @@
         window.addEventListener('DOMContentLoaded', function(){
             if (typeof atualizarCarrinhoHeader === 'function') atualizarCarrinhoHeader();
             if (typeof updateCartBadge === 'function') updateCartBadge();
+            // Carrega parâmetros para dicas de frete no carrinho
+            fetch(apiUrl('/api/parametros'))
+              .then(r=>r.json())
+              .then(data=>{ if (data.success && data.parametros) { window.__PARAMS__ = data.parametros; try{ window.renderCarrinho && window.renderCarrinho(); }catch(e){} } })
+              .catch(()=>{});
             const btn = document.getElementById('finalizar-compra');
-            if (btn) btn.addEventListener('click', function(){
-                const carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
-                if (!carrinho.length) { alert('Seu carrinho está vazio.'); return; }
-                const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
-                if (!usuario || !usuario.id) { alert('Você precisa estar logado para continuar.'); window.location.href = 'cadastro.html'; return; }
-                window.location.href = 'checkout.html';
-            });
+            if (btn && !btn.__bound) {
+                btn.__bound = true;
+                btn.addEventListener('click', function(){
+                    const carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
+                    if (!carrinho.length) { if (window.showToast) window.showToast('Seu carrinho está vazio.', {type:'warning'}); return; }
+                    const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
+                    if (!usuario || !usuario.id) {
+                        if (window.showToast) window.showToast('Você precisa estar logado para continuar.', {type:'info'});
+                        setTimeout(() => { window.location.href = 'cadastro.html'; }, 900);
+                        return;
+                    }
+                    window.location.href = 'checkout.html';
+                });
+            }
         });
         window.addEventListener('storage', function(){
             if (typeof atualizarCarrinhoHeader === 'function') atualizarCarrinhoHeader();
             if (typeof updateCartBadge === 'function') updateCartBadge();
+            try{ window.renderCarrinho && window.renderCarrinho(); }catch(e){}
         });
     </script>
 </body>

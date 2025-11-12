@@ -6,6 +6,7 @@
   <title>Meu Perfil</title>
   <link rel="icon" type="image/svg+xml" href="image/favicon.svg" />
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="js/env.js"></script>
   <script src="js/config.js"></script>
@@ -59,15 +60,25 @@
     .paginacao { display:flex; gap:.4rem; justify-content:center; align-items:center; margin-top:1rem; flex-wrap:wrap; }
     .paginacao button { background:#fff; border:1px solid var(--blue); color:var(--blue); padding:.4rem .8rem; border-radius:.4rem; cursor:pointer; font-weight:600; }
     .paginacao button.active { background:var(--blue); color:#fff; }
+    /* Alerta discreto para feedback */
+    .alert { padding:.8rem 1rem; border-radius:.5rem; font-size:1.3rem; margin:.6rem 0 1rem; }
+    .alert-error { background:#fdecea; color:#611a15; border:1px solid #f5c6cb; }
+    .alert-info { background:#e8f4ff; color:#084d82; border:1px solid #b3ddff; }
   </style>
 </head>
 <body>
   <header class="header"></header>
 
-  <main class="perfil-container">
-    <h1>Meu Perfil</h1>
+  <main class="auth-page" style="min-height:auto;">
+    <div class="auth-wrap" style="max-width:1000px;">
+    <section class="auth-card" style="padding:2.2rem 2rem;">
+      <div class="auth-title" style="margin-bottom:.4rem;">
+        <i class="fas fa-user-circle" style="color:var(--blue);"></i>
+        <h1 style="font-size:2.3rem;">Meu Perfil</h1>
+      </div>
 
-    <section class="card" id="dados-card">
+  <div id="perfil-alert" class="alert alert-error" style="display:none;"></div>
+  <section class="card" id="dados-card">
       <h2>Meus Dados</h2>
       <div class="dados-grid">
         <div class="campo"><label>Nome</label><span id="cli-nome">-</span></div>
@@ -78,6 +89,7 @@
         <div class="campo"><label>Bairro</label><span id="cli-bairro">-</span></div>
         <div class="campo"><label>Número</label><span id="cli-numero">-</span></div>
         <div class="campo"><label>Cidade/UF</label><span id="cli-cidadeuf">-</span></div>
+        <div class="campo"><label>CEP</label><span id="cli-cep">-</span></div>
       </div>
       <div class="dados-editar" id="dados-editar">
         <div class="dados-grid">
@@ -103,7 +115,8 @@
       </div>
     </section>
 
-    <section class="card" id="pedidos">
+    </section>
+    <section class="auth-card" id="pedidos" style="padding:2.2rem 2rem;">
       <h2>Meus Pedidos</h2>
       <div class="filtros">
         <label for="filtro-periodo">Período:</label>
@@ -130,6 +143,7 @@
       <div id="pedidos-lista">Carregando pedidos...</div>
       <div id="paginacao-pedidos" class="paginacao"></div>
     </section>
+    </div>
   </main>
 
   <footer></footer>
@@ -142,6 +156,14 @@
         window.location.href = 'cadastro.html';
         return;
       }
+      const alertEl = document.getElementById('perfil-alert');
+      function showPerfilAlert(msg, type){
+        if (!alertEl) return;
+        alertEl.textContent = msg || '';
+        alertEl.classList.remove('alert-error','alert-info');
+        alertEl.classList.add(type === 'info' ? 'alert-info' : 'alert-error');
+        alertEl.style.display = msg ? 'block' : 'none';
+      }
 
       // Carrega dados do cliente mais atualizados do servidor
       let nomeClienteGlobal = '';
@@ -149,32 +171,55 @@
         .then(r => r.json())
         .then(data => {
           const cli = (data && data.success && data.cliente) ? data.cliente : usuario;
+          try {
+            if (data && data.success && data.cliente) {
+              // Atualiza o localStorage com os dados completos retornados do servidor
+              const atual = JSON.parse(localStorage.getItem('usuarioLogado') || 'null') || {};
+              const merged = { ...atual, ...cli };
+              localStorage.setItem('usuarioLogado', JSON.stringify(merged));
+            } else {
+              // Mostra aviso se não retornou cliente (segue com dados do localStorage)
+              showPerfilAlert('Não foi possível carregar seus dados do cadastro agora. Exibindo dados locais.', 'info');
+            }
+          } catch(e){}
           nomeClienteGlobal = (cli.NOME || cli.nome || usuario?.nome || '').toString();
-          document.getElementById('cli-nome').textContent = cli.NOME || cli.nome || '-';
-          document.getElementById('cli-email').textContent = cli.EMAIL || cli.email || '-';
-          document.getElementById('cli-telefone').textContent = cli.TELEFONE || cli.CELULAR || cli.telefone || cli.celular || '-';
-          document.getElementById('cli-doc').textContent = cli.CPF || cli.CNPJ || cli.cpf || cli.cnpj || '-';
-          document.getElementById('cli-end').textContent = cli.ENDERECO || cli.endereco || '-';
-          document.getElementById('cli-bairro').textContent = cli.BAIRRO || cli.bairro || '-';
-          document.getElementById('cli-numero').textContent = cli.NUMERO || cli.numero || '-';
-          const cidade = cli.CIDADE || cli.cidade || '';
-          const uf = cli.UF || cli.uf || '';
+          // Helpers de máscara para exibição
+          const maskCEP = (v)=>{ const s=String(v||'').replace(/\D/g,''); return s.length===8? s.replace(/(\d{5})(\d{3})/, '$1-$2') : (v||''); };
+          const maskPhone = (v)=>{ const s=String(v||'').replace(/\D/g,''); if(!s) return '-'; return s.length>=11? `(${s.slice(0,2)})${s.slice(2,7)}-${s.slice(7,11)}` : (v||'-'); };
+          const maskCPF = (d)=>{ const s=String(d||'').replace(/\D/g,''); return s.length===11? `${s.slice(0,3)}.${s.slice(3,6)}.${s.slice(6,9)}-${s.slice(9,11)}` : (d||''); };
+          const maskCNPJ = (d)=>{ const s=String(d||'').replace(/\D/g,''); return s.length===14? `${s.slice(0,2)}.${s.slice(2,5)}.${s.slice(5,8)}/${s.slice(8,12)}-${s.slice(12,14)}` : (d||''); };
+
+          const safe = (v)=>{ if (v===null||v===undefined) return ''; const s=String(v).trim(); return s; };
+          document.getElementById('cli-nome').textContent = safe(cli.NOME || cli.nome) || '-';
+          document.getElementById('cli-email').textContent = safe(cli.EMAIL || cli.email) || '-';
+          const telRaw = safe(cli.TELEFONE || cli.CELULAR || cli.telefone || cli.celular);
+          document.getElementById('cli-telefone').textContent = telRaw ? maskPhone(telRaw) : '-';
+          const docRaw = safe(cli.CPF || cli.CNPJ || cli.cpf || cli.cnpj);
+          const docFmt = (String(docRaw).replace(/\D/g,'').length===11)? maskCPF(docRaw) : ((String(docRaw).replace(/\D/g,'').length===14)? maskCNPJ(docRaw) : (docRaw||'-'));
+          document.getElementById('cli-doc').textContent = docFmt || '-';
+          document.getElementById('cli-end').textContent = safe(cli.ENDERECO || cli.endereco) || '-';
+          document.getElementById('cli-bairro').textContent = safe(cli.BAIRRO || cli.bairro) || '-';
+          document.getElementById('cli-numero').textContent = safe(cli.NUMERO || cli.numero) || '-';
+          const cidade = safe(cli.CIDADE || cli.cidade);
+          const uf = safe(cli.UF || cli.uf);
           document.getElementById('cli-cidadeuf').textContent = [cidade, uf].filter(Boolean).join(' / ') || '-';
+          const cep = safe(cli.CEP || cli.cep);
+          document.getElementById('cli-cep').textContent = cep ? maskCEP(cep) : '-';
           // Preenche form de edição
           const setv = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
           setv('ed-nome', cli.NOME || cli.nome || '');
           setv('ed-email', cli.EMAIL || cli.email || '');
-          setv('ed-telefone', cli.TELEFONE || cli.CELULAR || cli.telefone || cli.celular || '');
-          setv('ed-doc', cli.CPF || cli.CNPJ || cli.cpf || cli.cnpj || '');
+          setv('ed-telefone', telRaw ? maskPhone(telRaw) : '');
+          setv('ed-doc', docFmt || '');
           setv('ed-endereco', cli.ENDERECO || cli.endereco || '');
           setv('ed-bairro', cli.BAIRRO || cli.bairro || '');
           setv('ed-numero', cli.NUMERO || cli.numero || '');
           setv('ed-cidade', cidade);
           setv('ed-uf', uf);
-          setv('ed-cep', cli.CEP || cli.cep || '');
+          setv('ed-cep', cep ? maskCEP(cep) : '');
           setv('ed-referencia', cli.REFERENCIA || cli.referencia || '');
-        })
-        .catch(() => {});
+  })
+  .catch(() => { showPerfilAlert('Falha de conexão ao carregar seus dados. Tente novamente mais tarde.', 'error'); });
 
       // Lista pedidos do cliente
       const lista = document.getElementById('pedidos-lista');

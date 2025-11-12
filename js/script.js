@@ -61,31 +61,97 @@ function initializeHeaderInteractions(){
     }, { passive: true });
 }
 
-// Toast simples no topo da tela
+// Toast moderno reutilizável
 function showToast(message, opts){
-    try {
-        const options = opts || {};
-        const bg = options.background || '#1657cf';
-        const color = options.color || '#fff';
-        const timeout = options.timeout || 1200;
-        const msg = document.createElement('div');
-        msg.textContent = message;
-        msg.style.position = 'fixed';
-        msg.style.top = '20px';
-        msg.style.left = '50%';
-        msg.style.transform = 'translateX(-50%)';
-        msg.style.background = bg;
-        msg.style.color = color;
-        msg.style.padding = '1rem 2rem';
-        msg.style.borderRadius = '2rem';
-        msg.style.fontSize = '1.4rem';
-        msg.style.fontWeight = 'bold';
-        msg.style.zIndex = '9999';
-        msg.style.boxShadow = '0 .2rem 1rem rgba(0,0,0,.2)';
-        msg.style.transition = 'opacity .5s';
-        document.body.appendChild(msg);
-        setTimeout(() => { msg.style.opacity = '0'; setTimeout(() => msg.remove(), 500); }, timeout);
-    } catch(e){}
+    const cfg = Object.assign({ type:'info', timeout:4000, icon:true }, opts||{});
+    const palette = {
+        info:   { bg:'#1657cf', fg:'#fff', icon:'fa-info-circle' },
+        success:{ bg:'#2e7d32', fg:'#fff', icon:'fa-check-circle' },
+        error:  { bg:'#d32f2f', fg:'#fff', icon:'fa-times-circle' },
+        warning:{ bg:'#ff9800', fg:'#fff', icon:'fa-exclamation-triangle' }
+    };
+    const p = palette[cfg.type] || palette.info;
+    let container = document.getElementById('toast-container');
+    if (!container){
+        container = document.createElement('div');
+        container.id='toast-container';
+        container.style.position='fixed';
+        container.style.top='20px';
+        container.style.right='20px';
+        container.style.zIndex='10000';
+        container.style.display='flex';
+        container.style.flexDirection='column';
+        container.style.gap='12px';
+        container.setAttribute('aria-live','polite');
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className='toast-item';
+    toast.style.background=p.bg;
+    toast.style.color=p.fg;
+    toast.style.minWidth='240px';
+    toast.style.maxWidth='360px';
+    toast.style.padding='14px 18px 12px';
+    toast.style.borderRadius='14px';
+    toast.style.boxShadow='0 6px 18px rgba(0,0,0,.18)';
+    toast.style.fontFamily='Poppins, sans-serif';
+    toast.style.fontSize='1.35rem';
+    toast.style.display='flex';
+    toast.style.alignItems='flex-start';
+    toast.style.gap='10px';
+    toast.style.position='relative';
+    toast.style.overflow='hidden';
+    toast.style.opacity='0';
+    toast.style.transform='translateY(-8px)';
+    toast.style.transition='opacity .35s ease, transform .35s ease';
+    toast.setAttribute('role','alert');
+    if (cfg.icon){
+        const ic = document.createElement('i');
+        ic.className='fas '+p.icon;
+        ic.style.fontSize='1.6rem';
+        ic.style.flex='0 0 auto';
+        ic.style.marginTop='2px';
+        toast.appendChild(ic);
+    }
+    const span = document.createElement('span');
+    span.textContent=message;
+    span.style.flex='1';
+    span.style.lineHeight='1.4';
+    span.style.fontWeight='600';
+    toast.appendChild(span);
+    const close = document.createElement('button');
+    close.innerHTML='&times;';
+    close.style.background='transparent';
+    close.style.color=p.fg;
+    close.style.border='none';
+    close.style.fontSize='1.8rem';
+    close.style.cursor='pointer';
+    close.style.lineHeight='1';
+    close.style.flex='0 0 auto';
+    close.style.padding='0 4px';
+    close.style.marginTop='-2px';
+    close.addEventListener('click', () => dismiss());
+    toast.appendChild(close);
+    const bar = document.createElement('div');
+    bar.style.position='absolute';
+    bar.style.left='0';
+    bar.style.bottom='0';
+    bar.style.height='4px';
+    bar.style.background='rgba(255,255,255,.65)';
+    bar.style.width='100%';
+    bar.style.transformOrigin='left';
+    bar.style.animation=`toast-progress ${cfg.timeout}ms linear forwards`;
+    toast.appendChild(bar);
+    container.appendChild(toast);
+    requestAnimationFrame(()=>{ toast.style.opacity='1'; toast.style.transform='translateY(0)'; });
+    let closed=false;
+    function dismiss(){
+        if (closed) return; closed=true;
+        toast.style.opacity='0'; toast.style.transform='translateY(-8px)';
+        setTimeout(()=>{ toast.remove(); if (!container.children.length) container.remove(); }, 350);
+    }
+    setTimeout(dismiss, cfg.timeout + 50);
+    return { dismiss };
 }
 
 // Chama imediatamente caso o layout já tenha sido injetado
@@ -95,6 +161,12 @@ document.addEventListener('DOMContentLoaded', initializeHeaderInteractions);
 // Permite que layout.js re-chame se reinjetar conteúdo
 window.initializeHeaderInteractions = initializeHeaderInteractions;
 window.showToast = showToast;
+// Atualiza saudação ao carregar
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ if (typeof updateHeaderUserGreet==='function') updateHeaderUserGreet(); });
+} else {
+    if (typeof updateHeaderUserGreet==='function') updateHeaderUserGreet();
+}
 
 
 
@@ -108,12 +180,12 @@ function conectarBanco() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
+                if (typeof showToast==='function') showToast(data.message || 'Conectado.', {type:'success'});
             } else {
-                alert('Erro: ' + data.error);
+                if (typeof showToast==='function') showToast('Erro: '+(data.error||'Falha'), {type:'error'});
             }
         })
-        .catch(err => alert('Erro: ' + err));
+    .catch(err => { if (typeof showToast==='function') showToast('Erro: '+err, {type:'error'}); });
 }
 
 
@@ -128,29 +200,38 @@ function bindLoginFlow(){
         if (usuario) { try { nome = JSON.parse(usuario).nome || nome; } catch(e){} }
         document.querySelectorAll('#login-title').forEach(el => { el.textContent = `Olá, ${nome}`; });
     }
-    atualizarTituloLogin();
+    atualizarTituloLogin(); if (typeof updateHeaderUserGreet==='function') updateHeaderUserGreet();
     window.addEventListener('storage', atualizarTituloLogin);
-    window.addEventListener('usuarioLogado', atualizarTituloLogin);
+    window.addEventListener('usuarioLogado', function(){ atualizarTituloLogin(); if (typeof updateHeaderUserGreet==='function') updateHeaderUserGreet(); });
 
     loginForm.addEventListener('submit', function(e){
         e.preventDefault();
         const emailEl = loginForm.querySelector('input[type="email"]');
         const senhaEl = loginForm.querySelector('input[type="password"]');
+        const rememberEl = loginForm.querySelector('#remember-email');
     // Email case-insensitive: envia sempre em lowercase
         const email = emailEl ? emailEl.value.trim().toLowerCase() : '';
         const senha = senhaEl ? senhaEl.value.trim() : '';
-        if (!email || !senha){ alert('Preencha email e senha.'); return; }
+    if (!email || !senha){ if (typeof showToast==='function') showToast('Preencha email e senha.', {type:'warning'}); return; }
+        // Persistência do email se marcado "Lembrar meu email"
+        try {
+            if (rememberEl && rememberEl.checked) {
+                localStorage.setItem('remember_email', email);
+            } else {
+                localStorage.removeItem('remember_email');
+            }
+        } catch(e){}
         fetch(apiUrl('/api/login'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, senha }) })
             .then(r => r.json())
             .then(data => {
-                if (!data.success){ alert(data.error || 'Erro ao logar.'); return; }
+                if (!data.success){ if (typeof showToast==='function') showToast(data.error || 'Erro ao logar.', {type:'error'}); return; }
                 fetch(apiUrl(`/api/cliente/${data.usuario.id}`))
                     .then(r => r.json())
                     .then(cli => {
                         let usuarioCompleto = data.usuario;
                         if (cli.success && cli.cliente){ usuarioCompleto = { ...data.usuario, ...cli.cliente }; }
                         localStorage.setItem('usuarioLogado', JSON.stringify(usuarioCompleto));
-                        atualizarTituloLogin();
+                        atualizarTituloLogin(); if (typeof updateHeaderUserGreet==='function') updateHeaderUserGreet();
                         loginForm.classList.remove('active');
                         // limpa campos
                         if (emailEl) emailEl.value=''; if (senhaEl) senhaEl.value='';
@@ -158,12 +239,12 @@ function bindLoginFlow(){
                     })
                     .catch(() => {
                         localStorage.setItem('usuarioLogado', JSON.stringify(data.usuario));
-                        atualizarTituloLogin();
+                        atualizarTituloLogin(); if (typeof updateHeaderUserGreet==='function') updateHeaderUserGreet();
                         loginForm.classList.remove('active');
                         if (typeof showToast === 'function') showToast('CONECTADO COM SUCESSO');
                     });
             })
-            .catch(() => alert('Erro ao conectar ao servidor.'));
+            .catch(() => { if (typeof showToast==='function') showToast('Erro ao conectar ao servidor.', {type:'error'}); });
     });
 
     const loginBtn = document.getElementById('login-btn');
@@ -181,6 +262,9 @@ function bindLoginFlow(){
                 const userObj = JSON.parse(usuario);
                 const titulo = loginForm.querySelector('#login-title'); if (titulo) titulo.textContent = `Olá, ${userObj.nome}`;
                 ['email','password'].forEach(t => { const el = loginForm.querySelector(`input[type="${t}"]`); if (el) el.style.display='none'; });
+                // Esconde o lembrete de email quando logado
+                const rememberLabel = loginForm.querySelector('label[for="remember-email"], label:has(#remember-email)');
+                if (rememberLabel) rememberLabel.style.display = 'none';
                 ['submit','button'].forEach(sel => { const b = loginForm.querySelector(`button[type="${sel}"]`); if (b && sel==='submit') b.style.display='none'; });
                 const criar = loginForm.querySelector('button.criar-btn'); if (criar) criar.style.display='none';
                 const esqueci = loginForm.querySelector('a'); if (esqueci) esqueci.style.display='none';
@@ -204,7 +288,7 @@ function bindLoginFlow(){
                     loginForm.appendChild(btnSair);
                 }
                 btnSair.onclick=function(){
-                    localStorage.removeItem('usuarioLogado');
+                    localStorage.removeItem('usuarioLogado'); if (typeof updateHeaderUserGreet==='function') updateHeaderUserGreet();
                     if (area) area.remove(); if (btnSair) btnSair.remove();
                     ['email','password'].forEach(t => { const el = loginForm.querySelector(`input[type="${t}"]`); if (el) el.style.display=''; });
                     const submitBtn = loginForm.querySelector('button[type="submit"]'); if (submitBtn) submitBtn.style.display='';
@@ -217,9 +301,22 @@ function bindLoginFlow(){
                 const area = loginForm.querySelector('#area-logada-login'); if (area) area.remove();
                 const btnSair = loginForm.querySelector('#logout-btn-login'); if (btnSair) btnSair.remove();
                 ['email','password'].forEach(t => { const el = loginForm.querySelector(`input[type="${t}"]`); if (el) el.style.display=''; });
+                // Mostra lembrete quando não logado
+                const rememberLabel = loginForm.querySelector('label[for="remember-email"], label:has(#remember-email)');
+                if (rememberLabel) rememberLabel.style.display = '';
                 const submitBtn = loginForm.querySelector('button[type="submit"]'); if (submitBtn) submitBtn.style.display='';
                 const criarBtn = loginForm.querySelector('button.criar-btn'); if (criarBtn) criarBtn.style.display='';
                 const esqueci2 = loginForm.querySelector('a'); if (esqueci2) esqueci2.style.display='';
+                // Pré-preenche email lembrado, se existir
+                try {
+                    const saved = localStorage.getItem('remember_email');
+                    if (saved && loginForm) {
+                        const emailEl2 = loginForm.querySelector('input[type="email"]');
+                        const rememberEl2 = loginForm.querySelector('#remember-email');
+                        if (emailEl2) emailEl2.value = saved;
+                        if (rememberEl2) rememberEl2.checked = true;
+                    }
+                } catch(e){}
             }
         });
     }
@@ -230,9 +327,30 @@ document.addEventListener('DOMContentLoaded', bindLoginFlow);
 window.bindLoginFlow = bindLoginFlow;
 
 // Exibe área logada no header
-function mostrarAreaLogada(usuario) {
-    // Não exibe mais área logada no topo do header
+function updateHeaderUserGreet(){
+    try {
+        const span = document.getElementById('header-user-greet');
+        if (!span) return;
+        const data = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
+        let nome = 'visitante';
+        if (data && data.nome) {
+            const parts = String(data.nome).trim().split(/\s+/);
+            nome = parts[0] || data.nome;
+        }
+        span.textContent = `Olá, ${nome}`;
+        // Tornar a saudação um atalho para abrir o painel de login/perfil
+        if (!span.__boundClick){
+            span.__boundClick = true;
+            span.style.cursor = 'pointer';
+            span.addEventListener('click', function(){
+                const loginBtn = document.getElementById('login-btn');
+                if (loginBtn) loginBtn.click();
+            });
+        }
+    } catch(e){}
 }
+// Compatibilidade com chamadas existentes
+function mostrarAreaLogada(){ updateHeaderUserGreet(); }
 
 // Exibe área logada se já estiver logado
 // Não exibe mais área logada no topo ao carregar página
@@ -366,13 +484,14 @@ function atualizarCarrinhoHeader() {
                 e.preventDefault();
                 const carrinhoAtual = JSON.parse(localStorage.getItem('carrinho') || '[]');
                 if (!carrinhoAtual.length) {
-                    alert('Seu carrinho está vazio.');
+                    if (typeof showToast==='function') showToast('Seu carrinho está vazio.', {type:'warning'});
                     return;
                 }
                 const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
                 if (!usuario || !usuario.id) {
-                    alert('Você precisa estar logado para continuar.');
-                    window.location.href = 'cadastro.html';
+                    if (typeof showToast==='function') showToast('Você precisa estar logado para continuar.', {type:'info'});
+                    // pequena pausa para exibir o toast antes de redirecionar
+                    setTimeout(() => { window.location.href = 'cadastro.html'; }, 800);
                     return;
                 }
                 window.location.href = 'checkout.html';
@@ -420,12 +539,5 @@ window.addEventListener('storage', updateCartBadge);
     }, 300);
 })();
 
-// Botões do Footer
-document.querySelectorAll(".toggle-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const box = btn.closest(".box");
-    box.classList.toggle("active");
-    btn.textContent = box.classList.contains("active") ? "⬆" : "⬇";
-  });
-});
+// (Footer collapse agora inicializado em layout.js - código antigo removido para evitar conflito)
 

@@ -1,0 +1,38 @@
+/* Estilos modernos para páginas de autenticação/conta
+   Utiliza variáveis do tema já definidas em style.css (var(--blue), var(--black), var(--light-color), var(--box-shadow)) */
+
+.auth-page { min-height: calc(100vh - 120px); display: grid; place-items: start center; padding: 3rem 1.6rem; }
+.auth-wrap { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 1.6rem; }
+.auth-card { background: #fff; border-radius: 1.2rem; box-shadow: var(--box-shadow); padding: 2.4rem 2.1rem; }
+.auth-card.divider-card { background: #f8fafc; border: 1px dashed #c6d4ee; }
+
+.auth-title { display: flex; align-items: center; gap: .9rem; margin-bottom: .8rem; }
+.auth-title h1 { font-size: 2.3rem; color: var(--black); margin: 0; }
+.auth-subtitle { color: var(--light-color); font-size: 1.35rem; line-height: 1.55; margin-bottom: 1.2rem; }
+
+.input-row { display: flex; flex-direction: column; gap: .9rem; }
+.input-group { display: flex; align-items: center; background: #f5f7fb; border: 1px solid #e3e8f0; border-radius: .8rem; padding: .7rem .95rem; transition: border .2s, background .2s; }
+.input-group:focus-within { border-color: var(--blue); background: #eef4ff; }
+.input-group .icon { color: var(--blue); font-size: 1.6rem; margin-right: .7rem; }
+.input-group input { flex: 1; background: transparent; font-size: 1.5rem; color: #222; padding: .4rem .2rem; }
+
+/* Erro visual no campo */
+.input-group.invalid { border-color: #d32f2f; background: #fff5f5; box-shadow: 0 0 0 3px rgba(211,47,47,.08); }
+.input-group.invalid .icon { color: #d32f2f; }
+
+.actions { display: flex; gap: .8rem; flex-wrap: wrap; margin-top: 1.2rem; }
+.btn-full { flex: 1 1 220px; text-align: center; }
+
+.muted { color: var(--light-color); font-size: 1.25rem; }
+.note { font-size: 1.2rem; color: #6b7280; }
+
+/* Grid utilitário para campos lado a lado */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; }
+.grid-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: .9rem; }
+
+/* Ajustes responsivos */
+@media (max-width: 560px){
+  .auth-card { padding: 1.8rem 1.4rem; }
+  .auth-title h1 { font-size: 2rem; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}

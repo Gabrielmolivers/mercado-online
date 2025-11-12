@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Redefinir Senha</title>
+  <link rel="icon" type="image/svg+xml" href="image/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  
+</head>
+<body>
+  <header class="header"></header>
+  <main class="auth-page">
+    <div class="auth-wrap">
+      <section class="auth-card">
+        <div class="auth-title">
+          <i class="fas fa-lock" style="color:var(--blue);"></i>
+          <h1>Redefinir senha</h1>
+        </div>
+        <p class="auth-subtitle">Valide seu código de verificação e escolha uma nova senha segura.</p>
+        <div class="input-row">
+          <div class="input-group"><span class="icon"><i class="fas fa-envelope"></i></span><input id="email" type="email" placeholder="seu@email.com" /></div>
+          <div class="input-group"><span class="icon"><i class="fas fa-shield-alt"></i></span><input id="codigo" type="text" maxlength="6" placeholder="Código (123456)" /></div>
+          <div class="input-group"><span class="icon"><i class="fas fa-key"></i></span><input id="novaSenha" type="password" placeholder="Nova senha" /></div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-full" id="btn-redefinir">Redefinir Senha</button>
+        </div>
+        <div id="msg"></div>
+        <p class="muted" style="margin-top:1rem;">Sugestão: use ao menos 8 caracteres com letras e números.</p>
+      </section>
+      <section class="auth-card divider-card">
+        <div class="auth-title" style="margin-bottom:.3rem;">
+          <i class="fas fa-question-circle" style="color:var(--blue);"></i>
+          <h1 style="font-size:1.9rem;">Precisa do código?</h1>
+        </div>
+        <p class="muted">Solicite novamente caso não tenha recebido.</p>
+        <div class="actions">
+          <a class="btn btn-full" href="esqueci-senha.html">Solicitar código</a>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer></footer>
+  <script src="js/env.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/layout.js" defer></script>
+  <script src="js/script.js" defer></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const emailEl = document.getElementById('email');
+    const codigoEl = document.getElementById('codigo');
+    const novaEl = document.getElementById('novaSenha');
+    const msg = document.getElementById('msg');
+  const btnRedef = document.getElementById('btn-redefinir');
+    // Pré-preenche email se vier via querystring
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const pre = params.get('email');
+      if (pre && emailEl) emailEl.value = pre;
+      const codeParam = params.get('code');
+      if (codeParam) {
+        codigoEl.value = (codeParam || '').trim();
+        const texto = codigoEl.value;
+        const doCopy = async () => {
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(texto);
+            } else {
+              // fallback
+              codigoEl.select(); document.execCommand('copy');
+            }
+            if (window.showToast) window.showToast('Código copiado para a área de transferência.', {type:'success'});
+          } catch(e) {
+            if (window.showToast) window.showToast('Não foi possível copiar automaticamente. Você pode selecionar e copiar.', {type:'warning'});
+          }
+        };
+        setTimeout(doCopy, 150);
+      }
+    } catch(e){}
+
+    btnRedef.addEventListener('click', ()=>{
+      const email = String(emailEl.value||'').trim();
+      const codigo = String(codigoEl.value||'').trim();
+      const novaSenha = String(novaEl.value||'').trim();
+      if (!email || !codigo || !novaSenha){ msg.textContent='Preencha todos os campos.'; msg.style.color='#c00'; if (window.showToast) window.showToast('Preencha todos os campos.', {type:'warning'}); return; }
+      // Primeiro valida código antes de tentar redefinir
+      fetch(apiUrl('/api/verificar-codigo'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, codigo }) })
+        .then(r=>r.json()).then(data=>{
+          if (!data.success || !data.valid){
+            msg.textContent = data.error || 'Código inválido.'; msg.style.color='#c00';
+            if (window.showToast) window.showToast(data.error || 'Código inválido.', {type:'error'});
+            return Promise.reject('invalid');
+          }
+          // Validação ok, prossegue com redefinição
+          return fetch(apiUrl('/api/redefinir-senha'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, codigo, novaSenha }) })
+            .then(r=>r.json())
+            .then(redef=>{
+              if (!redef.success){ msg.textContent=redef.error||'Erro ao redefinir.'; msg.style.color='#c00'; if (window.showToast) window.showToast(redef.error || 'Erro ao redefinir.', {type:'error'}); return; }
+              msg.textContent='Senha redefinida com sucesso! Faça login.'; msg.style.color='#2e7d32';
+              if (window.showToast) window.showToast('Senha redefinida com sucesso! Faça login.', {type:'success'});
+            });
+        })
+        .catch(err=>{ if (err!=='invalid'){ msg.textContent='Erro de conexão.'; msg.style.color='#c00'; if (window.showToast) window.showToast('Erro de conexão.', {type:'error'}); }});
+    });
+  });
+  </script>
+</body>
+</html>

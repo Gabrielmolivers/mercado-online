@@ -15,6 +15,7 @@
       <div id="search-btn" class="fas fa-search"></div>
       <div id="cart-btn" class="fas fa-shopping-cart"></div>
       <div id="login-btn" class="fas fa-user"></div>
+      <span id="header-user-greet" class="user-greet-label">Olá, visitante</span>
       <div id="menu-btn" class="fas fa-bars"></div>
     </div>
     <form class="search-form">
@@ -26,7 +27,10 @@
       <h3 id="login-title">Olá, visitante</h3>
       <input type="email" placeholder="Email" required>
       <input type="password" placeholder="Senha" required>
-      <a href="#">Esqueceu a senha?</a>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:1.2rem;margin:.4rem 0 .2rem;cursor:pointer;color:#444;">
+        <input type="checkbox" id="remember-email" style="width:16px;height:16px;cursor:pointer;"> Lembrar meu email
+      </label>
+      <a href="esqueci-senha.html">Esqueceu a senha?</a>
       <button type="submit" class="btn">Entrar</button>
       <button type="button" class="criar-btn" onclick="window.location.href='cadastro.html'">Criar uma Conta</button>
     </form>`;
@@ -40,7 +44,7 @@
         <div class="box">
           <div class="section-header">
             <h3> Quem somos </h3>
-            <button class="toggle-btn">⬇</button>
+            <button class="toggle-btn" aria-label="Expandir Quem somos"><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
           </div>
           <div class="box-content">
             <p> Seu Mercado Digital com ofertas e produtos sempre à mão!
@@ -50,7 +54,7 @@
         <div class="box">
           <div class="section-header">
             <h3> Formas de Pagamento </h3>
-            <button class="toggle-btn">⬇</button>
+            <button class="toggle-btn" aria-label="Expandir Formas de Pagamento"><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
           </div>
           <div class="box-content">
             <p> Aceitamos cartões de crédito, débito e vale alimentação. </p>
@@ -59,7 +63,7 @@
         <div class="box">
           <div class="section-header">
             <h3> Institucional </h3>
-            <button class="toggle-btn">⬇</button>
+            <button class="toggle-btn" aria-label="Expandir Institucional"><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
           </div>
           <div class="box-content">
             <a href="institucional.html" class="links"><i class="fa fa-arrow-right"></i> Sobre Nós </a>
@@ -73,8 +77,11 @@
           </div>
         </div>
         <div class="box">
-          <div class="app">
+          <div class="section-header">
             <h3> Relacionamento com o Cliente </h3>
+            <button class="toggle-btn" aria-label="Expandir Relacionamento com o Cliente"><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+          </div>
+          <div class="box-content">
             <a href="#" class="links" id="contato-telefone"><i class="fa fa-phone"></i> (00) 0000-0000 </a>
             <a href="#" class="links" id="contato-whats"><i class="fab fa-whatsapp"></i> (00) 00000-0000 </a>
             <a href="#" class="links" id="contato-email"><i class="fa fa-envelope"></i> mercado@email.com </a>
@@ -96,8 +103,8 @@
           </div>
         </div>
       </div>
-      <div class="box">
-        <div class="wide-text">
+      <div class="box wide-text-box">
+        <div class="wide-text" aria-hidden="false">
           <p>
             <strong id="empresa-razao">Mercado Online LTDA</strong>
             / CNPJ: <span id="empresa-cnpj">00.000.000/0001-00</span> / IE: <span id="empresa-ie">00000000-00</span>
@@ -164,6 +171,7 @@
     const f = document.querySelector('footer');
     if (f) f.innerHTML = footerHTML();
     carregarParametros();
+    inicializarFooterCollapse();
     // Após injetar, alguns listeners/áreas devem ser atualizados
     if (typeof window.atualizarCarrinhoHeader === 'function') {
       try { window.atualizarCarrinhoHeader(); } catch(e) {}
@@ -177,6 +185,39 @@
     if (typeof window.bindLoginFlow === 'function') {
       try { window.bindLoginFlow(); } catch(e) {}
     }
+    if (typeof window.updateHeaderUserGreet === 'function') {
+      try { window.updateHeaderUserGreet(); } catch(e) {}
+    }
+  }
+
+  function inicializarFooterCollapse(){
+    try {
+      const isDesktop = window.matchMedia('(min-width: 860px)').matches;
+      const boxes = document.querySelectorAll('.footer .box');
+      boxes.forEach(box => {
+        const header = box.querySelector('.section-header');
+        const content = box.querySelector('.box-content');
+        const btn = box.querySelector('.toggle-btn');
+        if (!header || !content) return; // ignora caixas sem conteúdo colapsável
+        function toggle(){
+          const open = box.classList.toggle('open');
+          if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+        if (!isDesktop){
+          box.classList.remove('open'); // fecha tudo inicialmente no mobile
+          header.addEventListener('click', e => { e.preventDefault(); toggle(); });
+          if (btn) btn.addEventListener('click', e => { e.stopPropagation(); toggle(); });
+        } else {
+          box.classList.add('open'); // mantém aberto no desktop
+        }
+      });
+      // Informações Legais sempre visíveis (remove comportamento de toggle)
+      // Reavalia quando mudar o tamanho
+      window.addEventListener('resize', () => {
+        const nowDesktop = window.matchMedia('(min-width: 860px)').matches;
+        if (nowDesktop !== isDesktop){ inicializarFooterCollapse(); }
+      }, { once:true });
+    } catch(e) { /* silencia erros */ }
   }
 
   // Injeta o header/footer o quanto antes para que outros scripts (defer) encontrem os elementos

@@ -1,6 +1,86 @@
 const express = require('express');
 const router = express.Router();
 const connection = require('./connection');
+const nodemailer = require('nodemailer');
+
+// Constrói template moderno em HTML para o email de recuperação
+function buildStyledRecoveryEmail(code, horasValidade = 2, email = '', appUrl = '') {
+  const brandBlue = '#1657cf';
+  const brandDark = '#130f40';
+  const bg = '#f5f7fb';
+  const border = '#e2e8f0';
+  const codeBg = '#ffffff';
+  const base = (appUrl || process.env.APP_BASE_URL || process.env.APP_URL || process.env.WEB_URL || '').replace(/\/$/, '');
+  // Sem links de ação: apenas exibição do código
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Recuperação de Senha</title>
+  <style>
+    body{margin:0;padding:0;background:${bg};font-family:'Poppins',Arial,sans-serif;}
+    .wrapper{max-width:560px;margin:0 auto;padding:32px 20px;}
+    .card{background:#fff;border:1px solid ${border};border-radius:16px;box-shadow:0 6px 25px rgba(0,0,0,.06);overflow:hidden;}
+    .top-bar{height:6px;background:${brandBlue};}
+    h1{font-size:22px;margin:0 0 8px;color:${brandDark};letter-spacing:.5px;}
+    p{margin:0 0 14px;font-size:15px;line-height:1.5;color:#444;}
+    .code-box{margin:18px 0 26px;display:flex;justify-content:center;}
+    .code-single{background:${codeBg};border:2px solid ${brandBlue};color:${brandDark};font-weight:600;font-size:30px;border-radius:14px;padding:18px 26px;letter-spacing:6px;box-shadow:0 4px 18px rgba(0,0,0,.10);font-family:'Poppins',monospace;}
+    .badge{display:inline-block;background:${brandBlue};color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:40px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;}
+    .footer{margin-top:28px;padding:16px 24px;background:${brandBlue};color:#fff;border-radius:0 0 16px 16px;font-size:12px;}
+    .quiet{color:#6b7280;font-size:12px;margin-top:6px;}
+    @media (max-width:480px){h1{font-size:20px;} .digit{font-size:24px;padding:12px 14px;} .wrapper{padding:24px 14px;} .card{border-radius:14px;} }
+  </style></head><body><div class="wrapper"><div class="card"><div class="top-bar"></div>
+  <div style="padding:28px 28px 6px;">
+    <span class="badge">Recuperação de Senha</span>
+    <h1>Seu código de verificação</h1>
+    <p>Use o código abaixo para continuar o processo de redefinição da sua senha. Ele é válido por <strong>${horasValidade} horas</strong>. Copie e cole na página de redefinição.</p>
+    <div class="code-box"><div class="code-single">${String(code)}</div></div>
+    <p style="margin-top:4px;">Se você não solicitou esta operação, pode ignorar este email com segurança. Nenhuma alteração foi feita na sua conta.</p>
+    <p class="quiet">Por segurança, não encaminhe este código para ninguém.</p>
+  </div>
+  <div class="footer">Mercado Online &mdash; Atendimento: suporte@mercadoonline<br/><span style="opacity:.85;">&copy; ${new Date().getFullYear()} Mercado Online. Todos os direitos reservados.</span></div>
+  </div></div></body></html>`;
+}
+
+// Util: envio de email (configurado via variáveis de ambiente) com template moderno
+function enviarEmail(destino, assunto, texto, opts = {}) {
+  const host = process.env.SMTP_HOST;
+  const port = parseInt(process.env.SMTP_PORT || '587', 10);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) {
+    console.warn('[EMAIL] Configuração SMTP ausente. Código:', texto);
+    return Promise.resolve({ simulated: true });
+  }
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: { user, pass }
+  });
+  // Detecta código de verificação (6 dígitos) para aplicar HTML estilizado
+  let html = null;
+  if (/Recuperação/i.test(assunto)) {
+    const match = texto.match(/(\d{6})/);
+    if (match) {
+      const baseFromOpts = opts.appUrl && String(opts.appUrl).trim();
+      html = buildStyledRecoveryEmail(
+        match[1],
+        2,
+        destino,
+        baseFromOpts || process.env.APP_BASE_URL || process.env.APP_URL || process.env.WEB_URL
+      );
+    }
+  }
+  return transporter.verify()
+    .then(() => transporter.sendMail({
+      from: { name: 'Mercado Online', address: user },
+      to: destino,
+      subject: assunto,
+      text: texto,
+      html: html || undefined
+    }))
+    .catch(err => { console.error('[EMAIL] Falha ao enviar:', err.message); return { error: err.message }; });
+}
 
 // Util: validação de CPF/CNPJ
 function validateCPF(cpf) {
@@ -68,6 +148,123 @@ router.post('/login', express.json(), (req, res) => {
     });
   });
 });
+
+// =============================
+// Recuperação de senha
+// Campos: CLIENTES.DIGVERIFICADOR armazena "CODIGO|TIMESTAMP" para expiração em 2h
+// =============================
+
+// Armazena em memória dados temporários de recuperação: email -> { code, ts }
+// Banco persistirá somente o código (sem timestamp) para evitar truncation
+const __memCodes = new Map();
+
+// Solicita código de verificação (esqueci a senha)
+router.post('/esqueci-senha', express.json(), (req, res) => {
+  let { email } = req.body;
+  if (!email) return res.status(400).json({ success:false, error:'Email obrigatório.' });
+  email = String(email).trim().toLowerCase();
+  connection.conectar((err, db) => {
+    if (err) return res.status(500).json({ success:false, error:'Erro de conexão.' });
+    // Também traz o DIGVERIFICADOR para aplicar cooldown de reenvio
+    db.query('SELECT ID, EMAIL, DIGVERIFICADOR FROM CLIENTES WHERE LOWER(EMAIL) = ?', [email], (qErr, result=[]) => {
+      if (qErr) { db.detach(); return res.status(500).json({ success:false, error:'Erro ao buscar email.' }); }
+      if (!result.length) { db.detach(); return res.json({ success:true, sent:false }); } // não revela existência
+      const id = result[0].ID;
+      const raw = (result[0].DIGVERIFICADOR || '').toString();
+      // Usa timestamp somente da memória (se já havia requisitado antes)
+      let ts = __memCodes.has(email) ? (__memCodes.get(email).ts || 0) : 0;
+      const COOLDOWN_MS = 60 * 1000; // 60 segundos
+      const agora = Date.now();
+      if (ts && (agora - ts) < COOLDOWN_MS) {
+        const retryAfterMs = COOLDOWN_MS - (agora - ts);
+        const retryAfter = Math.ceil(retryAfterMs / 1000);
+        db.detach();
+        return res.json({ success:true, sent:true, cooldown:true, retryAfter });
+      }
+      const codigo = String(Math.floor(100000 + Math.random()*900000)); // 6 dígitos
+      const codigoBanco = /^\d+$/.test(codigo) ? parseInt(codigo,10) : codigo;
+      db.query('UPDATE CLIENTES SET DIGVERIFICADOR = ? WHERE ID = ?', [codigoBanco, id], (uErr) => {
+        db.detach();
+        if (uErr) {
+          console.error('[ESQUECI-SENHA] Falha ao gravar código:', uErr && uErr.message);
+          return res.status(500).json({ success:false, error:'Erro ao gerar código.' });
+        }
+        __memCodes.set(email, { code: String(codigoBanco), ts: agora });
+        enviarEmail(email, 'Recuperação de Senha', `Seu código de verificação: ${codigo}\nVálido por 2 horas.`)
+          .then(()=> res.json({ success:true, sent:true, message:'CÓDIGO ENVIADO COM SUCESSO' }))
+          .catch(()=> res.json({ success:true, sent:true, message:'CÓDIGO ENVIADO COM SUCESSO', warning:'Falha envio real (simulado).' }));
+      });
+    });
+  });
+});
+
+// Verifica código
+router.post('/verificar-codigo', express.json(), (req, res) => {
+  let { email, codigo } = req.body;
+  if (!email || !codigo) return res.status(400).json({ success:false, error:'Email e código obrigatórios.' });
+  email = String(email).trim().toLowerCase();
+  codigo = String(codigo).trim();
+  connection.conectar((err, db) => {
+    if (err) return res.status(500).json({ success:false, error:'Erro de conexão.' });
+    db.query('SELECT DIGVERIFICADOR FROM CLIENTES WHERE LOWER(EMAIL) = ?', [email], (qErr, result=[]) => {
+      if (qErr) { db.detach(); return res.status(500).json({ success:false, error:'Erro ao verificar.' }); }
+      if (!result.length) { db.detach(); return res.json({ success:false, error:'Código inválido.' }); }
+      const raw = result[0].DIGVERIFICADOR || '';
+      const savedCode = raw; // banco guarda apenas o código
+      let ts = __memCodes.has(email) ? __memCodes.get(email).ts : null;
+      const expirado = ts ? ((Date.now() - ts) > (2*60*60*1000)) : false;
+      if (expirado) {
+        // Limpa código expirado
+        db.query('UPDATE CLIENTES SET DIGVERIFICADOR = NULL WHERE LOWER(EMAIL) = ?', [email], () => {
+          db.detach();
+          __memCodes.delete(email);
+          return res.json({ success:false, error:'Código expirado.' });
+        });
+        return;
+      }
+      if (codigo !== savedCode) { db.detach(); return res.json({ success:false, error:'Código inválido.' }); }
+      db.detach();
+      return res.json({ success:true, valid:true });
+    });
+  });
+});
+
+// Redefinir senha
+router.post('/redefinir-senha', express.json(), (req, res) => {
+  let { email, codigo, novaSenha } = req.body;
+  if (!email || !codigo || !novaSenha) return res.status(400).json({ success:false, error:'Campos obrigatórios.' });
+  email = String(email).trim().toLowerCase();
+  codigo = String(codigo).trim();
+  novaSenha = String(novaSenha).trim();
+  if (novaSenha.length < 4) return res.status(400).json({ success:false, error:'Senha muito curta.' });
+  connection.conectar((err, db) => {
+    if (err) return res.status(500).json({ success:false, error:'Erro de conexão.' });
+    db.query('SELECT ID, DIGVERIFICADOR FROM CLIENTES WHERE LOWER(EMAIL) = ?', [email], (qErr, result=[]) => {
+      if (qErr) { db.detach(); return res.status(500).json({ success:false, error:'Erro ao verificar.' }); }
+      if (!result.length) { db.detach(); return res.status(400).json({ success:false, error:'Código inválido.' }); }
+      const raw = result[0].DIGVERIFICADOR || '';
+      const savedCode = raw;
+      let ts = __memCodes.has(email) ? __memCodes.get(email).ts : null;
+      const expirado = ts ? ((Date.now() - ts) > (2*60*60*1000)) : false;
+      if (expirado) {
+        // Limpa expirado e informa
+        db.query('UPDATE CLIENTES SET DIGVERIFICADOR = NULL WHERE LOWER(EMAIL) = ?', [email], () => {
+          db.detach();
+          __memCodes.delete(email);
+          return res.status(400).json({ success:false, error:'Código expirado.' });
+        });
+        return;
+      }
+      if (codigo !== savedCode) { db.detach(); return res.status(400).json({ success:false, error:'Código inválido.' }); }
+      db.query('UPDATE CLIENTES SET SENHA = ?, DIGVERIFICADOR = NULL WHERE LOWER(EMAIL) = ?', [novaSenha, email], (uErr) => {
+        db.detach();
+        if (uErr) return res.status(500).json({ success:false, error:'Erro ao atualizar senha.' });
+        __memCodes.delete(email);
+        res.json({ success:true, updated:true });
+      });
+    });
+  });
+});
 // Cache simples em memória
 let produtosCache = null;
 let cacheTimestamp = 0;
@@ -80,17 +277,77 @@ let parametrosCache = null;
 let parametrosCacheAt = 0;
 
 // ...existing code...
-// Rota para buscar dados completos do cliente
+// Rota para buscar dados completos do cliente (tolerante a ausência de colunas)
 router.get('/cliente/:id', (req, res) => {
-  const id = req.params.id;
+  const id = parseInt(req.params.id, 10);
   if (!id) return res.status(400).json({ success: false, error: 'ID obrigatório.' });
   connection.conectar((err, db) => {
     if (err) return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco.' });
-    db.query('SELECT ENDERECO, BAIRRO, NUMERO FROM CLIENTES WHERE ID = ?', [id], (err, result) => {
-      db.detach(() => {});
-      if (err) return res.status(500).json({ success: false, error: 'Erro ao buscar cliente.' });
-      if (!result || result.length === 0) return res.status(404).json({ success: false, error: 'Cliente não encontrado.' });
-      res.json({ success: true, cliente: result[0] });
+
+    // Descobre dinamicamente quais colunas existem na tabela CLIENTES
+    const metaSql = "SELECT TRIM(RDB$FIELD_NAME) AS FIELD FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = 'CLIENTES'";
+    db.query(metaSql, [], (mErr, metaRes = []) => {
+      if (mErr) {
+        console.error('[CLIENTE] Falha ao ler metadados:', mErr);
+      }
+      const existentes = new Set(
+        (metaRes || []).map(r => (r.FIELD || r.RDB$FIELD_NAME || '').trim().toUpperCase())
+      );
+      // Mapeamento lógico -> coluna física (quando existir)
+      const campos = [
+        ['ID', 'ID'],
+        ['NOME', 'NOMECLI'],
+        ['EMAIL', 'EMAIL'],
+        ['CELULAR', 'CELULAR'],
+        ['CPF', 'CPF'],
+        ['CNPJ', 'CNPJ'],
+        ['ENDERECO', 'ENDERECO'],
+        ['BAIRRO', 'BAIRRO'],
+        ['NUMERO', 'NUMERO'],
+        ['CIDADE', 'CIDADE'],
+        ['UF', 'UF'],
+        ['CEP', 'CEP'],
+        ['REFERENCIA', 'REFERENCIA']
+      ].filter(([_, col]) => existentes.has(col));
+
+      // Garante pelo menos ID, NOMECLI, EMAIL para não quebrar
+      const essenciais = ['ID','NOMECLI','EMAIL'];
+      essenciais.forEach(col => { if (!existentes.has(col)) console.warn('[CLIENTE] Coluna essencial ausente:', col); });
+
+      const selectFrag = campos.map(([alias, col]) => col === alias ? col : `${col} AS ${alias}`).join(', ');
+      const sql = `SELECT ${selectFrag} FROM CLIENTES WHERE ID = ?`;
+
+      db.query(sql, [id], (qErr, result = []) => {
+        db.detach(() => {});
+        if (qErr) {
+          console.error('[CLIENTE] Erro na consulta principal, tentando fallback simplificado:', qErr.message);
+          // Fallback mínimo
+            connection.conectar((fbErr, db2) => {
+              if (fbErr) return res.status(500).json({ success:false, error:'Erro ao recuperar (fallback).'});
+              db2.query('SELECT ID, NOMECLI AS NOME, EMAIL FROM CLIENTES WHERE ID = ?', [id], (fbQE, fbRes = []) => {
+                db2.detach(() => {});
+                if (fbQE) {
+                  console.error('[CLIENTE] Fallback também falhou:', fbQE.message);
+                  return res.status(500).json({ success:false, error:'Erro ao buscar cliente.' });
+                }
+                if (!fbRes.length) return res.status(404).json({ success:false, error:'Cliente não encontrado.' });
+                // Preenche campos opcionais como null
+                const base = fbRes[0];
+                const cliente = {
+                  ID: base.ID,
+                  NOME: base.NOME,
+                  EMAIL: base.EMAIL,
+                  CELULAR: null, CPF: null, CNPJ: null, ENDERECO: null, BAIRRO: null,
+                  NUMERO: null, CIDADE: null, UF: null, CEP: null, REFERENCIA: null
+                };
+                return res.json({ success:true, cliente });
+              });
+            });
+          return;
+        }
+        if (!result.length) return res.status(404).json({ success: false, error: 'Cliente não encontrado.' });
+        res.json({ success: true, cliente: result[0] });
+      });
     });
   });
 });
@@ -100,18 +357,16 @@ router.put('/cliente/:id', express.json(), (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!id) return res.status(400).json({ success: false, error: 'ID obrigatório' });
   const body = req.body || {};
-  // Normalização e validação de CPF/CNPJ, se enviados
-  if (Object.prototype.hasOwnProperty.call(body, 'cpf') && body.cpf !== undefined && body.cpf !== null && String(body.cpf).trim() !== '') {
-    body.cpf = String(body.cpf).replace(/\D/g, '');
-    if (!validateCPF(body.cpf)) {
-      return res.status(400).json({ success: false, error: 'CPF inválido' });
-    }
-  }
-  if (Object.prototype.hasOwnProperty.call(body, 'cnpj') && body.cnpj !== undefined && body.cnpj !== null && String(body.cnpj).trim() !== '') {
-    body.cnpj = String(body.cnpj).replace(/\D/g, '');
-    if (!validateCNPJ(body.cnpj)) {
-      return res.status(400).json({ success: false, error: 'CNPJ inválido' });
-    }
+  // Normaliza documento: usa sempre o campo CPF para armazenar CPF ou CNPJ
+  const hasCpf = Object.prototype.hasOwnProperty.call(body, 'cpf') && body.cpf !== undefined && body.cpf !== null && String(body.cpf).trim() !== '';
+  const hasCnpj = Object.prototype.hasOwnProperty.call(body, 'cnpj') && body.cnpj !== undefined && body.cnpj !== null && String(body.cnpj).trim() !== '';
+  if (hasCpf || hasCnpj) {
+    const doc = String(hasCpf ? body.cpf : body.cnpj).replace(/\D/g, '');
+    if (doc.length === 11) { if (!validateCPF(doc)) return res.status(400).json({ success:false, error:'CPF inválido' }); }
+    else if (doc.length === 14) { if (!validateCNPJ(doc)) return res.status(400).json({ success:false, error:'CNPJ inválido' }); }
+    else { return res.status(400).json({ success:false, error:'Documento inválido' }); }
+    body.cpf = doc; // unifica
+    delete body.cnpj;
   }
   // Campos permitidos (EMAIL não pode)
   const camposMap = {
@@ -123,8 +378,7 @@ router.put('/cliente/:id', express.json(), (req, res) => {
     cep: 'CEP',
     celular: 'CELULAR',
     telefone: 'CELULAR',
-    cpf: 'CPF',
-    cnpj: 'CNPJ'
+    cpf: 'CPF'
   };
   const sets = [];
   const values = [];
@@ -359,7 +613,7 @@ router.post('/cadastro', express.json(), (req, res) => {
     if (err) {
       return res.status(500).json({ success: false, error: 'Erro ao conectar ao banco' });
     }
-    const { email } = req.body;
+  const { email } = req.body;
   const emailNorm = String(email).trim().toLowerCase();
   db.query('SELECT ID FROM CLIENTES WHERE LOWER(EMAIL) = ?', [emailNorm], (err, result) => {
       if (err) {
@@ -378,23 +632,51 @@ router.post('/cadastro', express.json(), (req, res) => {
         const novoId = (result[0].MAX_ID || 0) + 1;
         const {
           nome, email: emailOriginal, endereco, bairro, numero, complemento,
-          cidade, estado, cep, celular, senha, dtcadastro
+          cidade, estado, cep, celular, senha, dtcadastro, cpf, cnpj
         } = req.body;
-        db.query(
-          'INSERT INTO CLIENTES (ID, NOMECLI, EMAIL, ENDERECO, BAIRRO, NUMERO, REFERENCIA, CIDADE, UF, CEP, CELULAR, SENHA, DTCADASTRO) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [
-            parseInt(novoId), nome, String(emailOriginal).trim().toLowerCase(), endereco, bairro, numero, complemento,
-            cidade, estado, cep, celular, senha, dtcadastro
-          ],
-          (err) => {
-            db.detach();
-            if (err) {
-              console.error('Erro ao inserir cliente:', err);
-              return res.status(500).json({ success: false, error: err.message });
+        // Normaliza documento: usa sempre a coluna CPF para armazenar CPF ou CNPJ
+        function toDigits(v){ return String(v||'').replace(/\D/g,''); }
+        const cpfClean = toDigits(cpf);
+        const cnpjClean = toDigits(cnpj);
+        const docClean = cpfClean || cnpjClean;
+        if (!docClean) { db.detach(); return res.status(400).json({ success:false, error:'CPF ou CNPJ obrigatório' }); }
+        if (docClean.length === 11) {
+          if (!validateCPF(docClean)) { db.detach(); return res.status(400).json({ success:false, error:'CPF inválido' }); }
+        } else if (docClean.length === 14) {
+          if (!validateCNPJ(docClean)) { db.detach(); return res.status(400).json({ success:false, error:'CNPJ inválido' }); }
+        } else {
+          db.detach(); return res.status(400).json({ success:false, error:'Documento inválido' });
+        }
+          // Lê metadados para verificar se colunas CPF/CNPJ existem
+          const metaSql = "SELECT TRIM(RDB$FIELD_NAME) AS FIELD FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = 'CLIENTES'";
+          db.query(metaSql, [], (mErr, metaRes=[]) => {
+            if (mErr) {
+              console.warn('[CADASTRO] Falha ao ler metadados CLIENTES, prosseguindo com colunas básicas. Erro:', mErr.message);
             }
-            res.json({ success: true, id: novoId });
-          }
-        );
+            const existentes = new Set((metaRes||[]).map(r => (r.FIELD || '').toUpperCase()));
+            // Colunas obrigatórias básicas
+            const cols = ['ID','NOMECLI','EMAIL','ENDERECO','BAIRRO','NUMERO','REFERENCIA','CIDADE','UF','CEP','CELULAR','SENHA','DTCADASTRO'];
+            const placeholders = ['?','?','?','?','?','?','?','?','?','?','?','?','?'];
+            const values = [
+              parseInt(novoId),
+              nome,
+              String(emailOriginal).trim().toLowerCase(),
+              endereco, bairro, numero, complemento,
+              cidade, estado, cep, celular, senha, dtcadastro
+            ];
+            // Usa somente a coluna CPF para armazenar CPF ou CNPJ
+            if (existentes.has('CPF')) { cols.push('CPF'); placeholders.push('?'); values.push(docClean); }
+            else { console.warn('[CADASTRO] Coluna CPF ausente. Documento será ignorado no INSERT.'); }
+            const insertSql = `INSERT INTO CLIENTES (${cols.join(', ')}) VALUES (${placeholders.join(', ')})`;
+            db.query(insertSql, values, (iErr) => {
+              db.detach();
+              if (iErr) {
+                console.error('Erro ao inserir cliente:', iErr);
+                return res.status(500).json({ success: false, error: iErr.message });
+              }
+              res.json({ success: true, id: novoId });
+            });
+          });
       });
     });
   });

@@ -8,66 +8,54 @@
   <link rel="icon" type="image/svg+xml" href="image/favicon.svg" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    .checkout-container { max-width: 900px; margin: 2rem auto; padding: 1rem; }
-    .resumo { background: #fff; border-radius: .5rem; box-shadow: 0 .1rem 1rem rgba(0,0,0,.15); padding: 1rem; }
-    .resumo h2 { margin-top: 0; }
-    .resumo .linha { display: flex; justify-content: space-between; padding: .5rem 0; border-bottom: 1px solid #eee; }
-    .resumo .linha:last-child { border-bottom: 0; }
-    .total { font-weight: bold; font-size: 1.2rem; color: var(--blue); }
-    .acoes { display: flex; gap: 1rem; margin-top: 1rem; }
-  .entrega-card { margin-top: 1rem; background:#f9fbff; border:1px solid #e3eefc; border-radius:.5rem; padding:1rem; display:none; }
-    .entrega-card h3 { margin:0 0 .5rem 0; color: var(--blue); font-size:1.6rem; }
+    .checkout-wrap { max-width: 1080px; margin: 2rem auto; padding: 0 1rem; }
+  .co-grid { display:grid; grid-template-columns: 1fr; gap:1.2rem; align-items:start; }
+    .co-card { background:#fff; border:1px solid #e6ebf5; border-radius:14px; box-shadow:0 6px 22px rgba(0,0,0,.08); padding:1.1rem 1.1rem; }
+    .co-card h2 { margin:0 0 .6rem 0; font-size:1.8rem; color:#130f40; }
+    .linha { display:flex; justify-content:space-between; align-items:center; padding:.5rem 0; border-bottom:1px solid #f0f2f8; }
+    .linha:last-child { border-bottom:0; }
+    .total { font-weight:800; font-size:1.4rem; color: var(--blue); }
+    .acoes { display:flex; gap: .8rem; margin-top: .8rem; flex-wrap:wrap; }
+    .entrega-card { margin-top:.6rem; background:#f9fbff; border:1px solid #e3eefc; border-radius:10px; padding:1rem; display:none; }
+    .entrega-card h3 { margin:0 0 .4rem 0; color: var(--blue); font-size:1.6rem; }
     .grid-3 { display:grid; grid-template-columns: 2fr 2fr 1fr; gap: .8rem; }
     .grid-2 { display:grid; grid-template-columns: 2fr 1fr; gap: .8rem; margin-top:.8rem; }
     .entrega-card label { font-size:1.2rem; font-weight:600; color:#333; }
-    .entrega-card input { width:100%; padding:.6rem .8rem; border:1px solid #ccc; border-radius:.4rem; font-size:1.2rem; background:#fff; }
-  .entrega-card input.invalid { border-color:#d32f2f; box-shadow:0 0 0 3px rgba(211,47,47,0.15); }
-    /* Selects com estilo de botão azul */
+    .entrega-card input { width:100%; padding:.6rem .8rem; border:1px solid #d1d7e5; border-radius:.6rem; font-size:1.2rem; background:#fff; }
+    .entrega-card input.invalid { border-color:#d32f2f; box-shadow:0 0 0 3px rgba(211,47,47,0.12); }
     #entrega-select, #pagto-select {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      background: var(--blue);
-      color: #fff;
-      font-weight: bold;
-      font-size: 1.4rem;
-      padding: .8rem 2.6rem .8rem 1rem;
-      border: none;
-      border-radius: .5rem;
-      cursor: pointer;
+      -webkit-appearance: none; -moz-appearance: none; appearance: none;
+      background: var(--blue); color: #fff; font-weight: 700; font-size: 1.35rem;
+      padding: .7rem 2.4rem .7rem 1rem; border: none; border-radius: .6rem; cursor: pointer;
       box-shadow: 0 .1rem .6rem rgba(0,0,0,.15);
       background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='white'><path d='M7 10l5 5 5-5z'/></svg>");
-      background-repeat: no-repeat;
-      background-position: right .8rem center;
-      background-size: 14px;
+      background-repeat: no-repeat; background-position: right .8rem center; background-size: 14px;
     }
     #entrega-select:hover, #pagto-select:hover { background:#130f40; }
     #entrega-select:focus, #pagto-select:focus { outline: 3px solid rgba(22,87,207,.25); }
+  @media (max-width: 960px){ .co-grid { grid-template-columns: 1fr; } }
     @media (max-width: 600px){
       #entrega-select, #pagto-select { width: 100%; }
-    }
-    @media (max-width: 600px){
       .grid-3 { grid-template-columns: 1fr; }
       .grid-2 { grid-template-columns: 1fr; }
-      .resumo .linha { flex-direction: column; align-items: flex-start; gap:.5rem; }
+      .linha { flex-direction: column; align-items: flex-start; gap:.5rem; }
     }
-    /* Destaque visual para frete grátis */
-    #linha-frete #valor-frete.frete-gratis { color:#2e7d32; font-weight:700; }
-    /* Troco (dinheiro) */
-  .troco-card { margin-top: .6rem; background:#fffaf0; border:1px solid #ffe0a3; border-radius:.5rem; padding: .8rem; display:none; }
-    .troco-card label { font-size:1.2rem; font-weight:600; color:#6b4b00; }
-  .troco-card input { width: 220px; max-width:100%; padding:.6rem .8rem; border:1px solid #d8b565; border-radius:.4rem; font-size:1.2rem; }
-  .troco-card input.invalid { border-color:#d32f2f; box-shadow:0 0 0 3px rgba(211,47,47,0.15); }
+    #linha-frete #valor-frete.frete-gratis { color:#2e7d32; font-weight:800; }
+    .troco-card { margin-top: .6rem; background:#fffaf0; border:1px solid #ffe0a3; border-radius:.6rem; padding: .8rem; display:none; }
+    .troco-card label { font-size:1.2rem; font-weight:700; color:#6b4b00; }
+    .troco-card input { width: 220px; max-width:100%; padding:.6rem .8rem; border:1px solid #d8b565; border-radius:.5rem; font-size:1.2rem; }
+    .troco-card input.invalid { border-color:#d32f2f; box-shadow:0 0 0 3px rgba(211,47,47,0.12); }
+    /* Resumo sticky no desktop */
+    .co-sticky { position: sticky; top: 96px; }
   </style>
 </head>
 <body>
   <header class="header"></header>
 
-  <main class="checkout-container">
-    <h1>Checkout</h1>
-    <div id="aviso"></div>
-    <section class="resumo">
-      <h2>Resumo do Pedido</h2>
+  <main class="checkout-wrap">
+    <div class="co-grid">
+      <section class="co-card">
+        <h2>Resumo do Pedido</h2>
   <div id="itens"></div>
   <div id="linha-frete" class="linha" style="display:none;"><span>Entrega</span><span id="valor-frete">R$ 0,00</span></div>
   <div class="linha total"><span>Total</span><span id="total">R$ 0,00</span></div>
@@ -124,7 +112,8 @@
         <a class="btn" href="carrinho.html">Voltar ao Carrinho</a>
         <button class="btn" id="confirmar">Confirmar Pedido</button>
       </div>
-    </section>
+      </section>
+    </div>
   </main>
 
   <footer></footer>
@@ -153,8 +142,8 @@
       // Exigir login
       const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
       if (!usuario || !usuario.id) {
-        alert('Você precisa estar logado para continuar.');
-        window.location.href = 'cadastro.html';
+        if (window.showToast) window.showToast('Você precisa estar logado para continuar.', {type:'info'});
+        setTimeout(() => { window.location.href = 'cadastro.html'; }, 800);
         return;
       }
 
@@ -222,6 +211,7 @@
         totalEl.textContent = `R$ ${(total + entregaTaxaAtual).toFixed(2)}`;
       }
       totalEl.textContent = `R$ ${(total + entregaTaxaAtual).toFixed(2)}`;
+      
 
       // Buscar dados do cliente para pré-preencher endereço de entrega
       let clienteBase = null;
@@ -305,10 +295,7 @@
       // Confirmar pedido => buscar dados do cliente e enviar para API
   document.getElementById('confirmar').addEventListener('click', () => {
         const itens = JSON.parse(localStorage.getItem('carrinho') || '[]');
-        if (!itens.length) {
-          alert('Seu carrinho está vazio.');
-          return;
-        }
+        if (!itens.length) { if (window.showToast) window.showToast('Seu carrinho está vazio.', {type:'warning'}); return; }
   const sel = document.getElementById('pagto-select');
   const meioPagto = sel ? sel.value : 'D'; // D=Dinheiro, C=Cartão, P=PIX
   // Recalcula taxa de entrega no momento do envio
@@ -324,7 +311,7 @@
           if (!raw || valNum <= totalPagar) {
             document.getElementById('troco-dinheiro').style.display = 'block';
             tEl?.classList.add('invalid');
-            alert(`Informe o valor do TROCO PARA maior que o total da compra (Total: R$ ${totalPagar.toFixed(2)}).`);
+            if (window.showToast) window.showToast(`Informe o valor do TROCO PARA maior que o total da compra (Total: R$ ${totalPagar.toFixed(2)}).`, {type:'warning'});
             tEl?.focus();
             document.getElementById('troco-dinheiro')?.scrollIntoView({ behavior:'smooth', block:'center' });
             return;
@@ -348,7 +335,7 @@
           if (!bai) { faltando.push('Bairro'); baiEl?.classList.add('invalid'); }
           if (!num) { faltando.push('Número'); numEl?.classList.add('invalid'); }
           if (faltando.length) {
-            alert('Para entrega em domicílio, preencha: ' + faltando.join(', ') + '.');
+            if (window.showToast) window.showToast('Para entrega em domicílio, preencha: ' + faltando.join(', ') + '.', {type:'warning'});
             // Foca no primeiro campo faltante
             const first = faltando[0];
             if (first === 'Endereço') endEl?.focus();
@@ -361,10 +348,7 @@
         fetch(apiUrl(`/api/cliente/${usuario.id}`))
           .then(r => r.json())
           .then(cli => {
-            if (!cli.success || !cli.cliente) {
-              alert('Não foi possível obter os dados do cliente.');
-              return;
-            }
+            if (!cli.success || !cli.cliente) { if (window.showToast) window.showToast('Não foi possível obter os dados do cliente.', {type:'error'}); return; }
             // Observação base digitada
             let obsBase = (document.getElementById('obs-pedido')?.value || '').trim();
             // Se pagamento em dinheiro e campo de troco preenchido, acrescenta na observação
@@ -404,20 +388,21 @@
             .then(r => r.json())
             .then(data => {
               if (data.success) {
-                alert('Pedido confirmado com sucesso!');
+                if (window.showToast) window.showToast('Pedido confirmado com sucesso!', {type:'success'});
                 // Limpa apenas o carrinho, preservando sessão do usuário
                 localStorage.removeItem('carrinho');
                 // Dispara evento para atualizar badge/header antes do redirect
                 window.dispatchEvent(new Event('storage'));
-                window.location.href = 'index.html';
+                setTimeout(() => { window.location.href = 'index.html'; }, 900);
               } else {
-                alert('Erro ao confirmar pedido: ' + (data.error || 'Tente novamente.'));
+                if (window.showToast) window.showToast('Erro ao confirmar pedido: ' + (data.error || 'Tente novamente.'), {type:'error'});
               }
             })
-            .catch(() => alert('Erro ao conectar ao servidor.'));
+            .catch(() => { if (window.showToast) window.showToast('Erro ao conectar ao servidor.', {type:'error'}); });
           })
-          .catch(() => alert('Erro ao buscar dados do cliente.'));
+          .catch(() => { if (window.showToast) window.showToast('Erro ao buscar dados do cliente.', {type:'error'}); });
       });
+      // resumo lateral removido; ação permanece no botão principal
     });
   </script>
 </body>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recuperar Senha</title>
+  <link rel="icon" type="image/svg+xml" href="image/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  
+</head>
+<body>
+  <header class="header"></header>
+  <main class="auth-page">
+    <div class="auth-wrap">
+      <section class="auth-card">
+        <div class="auth-title">
+          <i class="fas fa-key" style="color:var(--blue);"></i>
+          <h1>Recuperar senha</h1>
+        </div>
+        <p class="auth-subtitle">Informe seu e-mail cadastrado. Enviaremos um código de verificação válido por 2 horas.</p>
+        <div class="input-group" style="margin-top:.6rem;">
+          <span class="icon"><i class="fas fa-envelope"></i></span>
+          <input id="email" type="email" placeholder="seu@email.com" />
+        </div>
+        <div class="actions">
+          <button class="btn btn-full" id="btn-enviar">Enviar código</button>
+        </div>
+        <div id="msg" class="note"></div>
+        <div class="note">Dica: verifique também a caixa de spam.</div>
+      </section>
+      <section class="auth-card divider-card">
+        <div class="auth-title" style="margin-bottom:.2rem;">
+          <i class="fas fa-paper-plane" style="color:var(--blue);"></i>
+          <h1 style="font-size:1.8rem;">Já recebeu o código?</h1>
+        </div>
+        <p class="muted">Prossiga para a etapa de redefinição de senha.</p>
+        <div class="actions" style="margin-top:1rem;">
+          <a class="btn btn-full" href="redefinir-senha.html">Ir para redefinir senha</a>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer></footer>
+  <script src="js/env.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/layout.js" defer></script>
+  <script src="js/script.js" defer></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const btn = document.getElementById('btn-enviar');
+    const msg = document.getElementById('msg');
+    const emailInput = document.getElementById('email');
+
+    function keyFor(email){ return `recover_last_ts_${(email||'').toLowerCase()}`; }
+    let countdownTimer = null;
+    function startCooldown(seconds, email){
+      let remain = seconds;
+      const k = keyFor(email);
+      try { localStorage.setItem(k, String(Date.now())); } catch(e){}
+      btn.disabled = true;
+      const baseLabel = 'Reenviar código';
+      btn.textContent = `${baseLabel} (${remain}s)`;
+      if (countdownTimer) clearInterval(countdownTimer);
+      countdownTimer = setInterval(()=>{
+        remain -= 1;
+        if (remain <= 0){
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+          btn.disabled = false;
+          btn.textContent = 'Enviar código';
+          return;
+        }
+        btn.textContent = `${baseLabel} (${remain}s)`;
+      }, 1000);
+    }
+
+    // Checa cooldown ao abrir a página (por e-mail, se preenchido)
+    function checkCooldownOnLoad(){
+      const email = String(emailInput.value||'').trim().toLowerCase();
+      if (!email) return; // só ativa se já tiver e-mail preenchido
+      const k = keyFor(email);
+      let ts = 0; try { ts = parseInt(localStorage.getItem(k)||'0',10)||0; } catch(e){}
+      if (!ts) return;
+      const elapsed = Date.now() - ts;
+      const COOLDOWN_MS = 60*1000;
+      if (elapsed < COOLDOWN_MS){
+        const remain = Math.ceil((COOLDOWN_MS - elapsed)/1000);
+        startCooldown(remain, email);
+      }
+    }
+
+    // Ao sair do campo e-mail, tenta aplicar cooldown existente
+    emailInput.addEventListener('blur', checkCooldownOnLoad);
+
+    btn.addEventListener('click', ()=>{
+      const email = String(document.getElementById('email').value||'').trim();
+      if (!email){ msg.textContent = 'Informe seu e-mail.'; msg.style.color = '#c00'; if (window.showToast) window.showToast('Informe seu e-mail.', {type:'warning'}); return; }
+      // Estado de carregando
+      const originalLabel = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+      fetch(apiUrl('/api/esqueci-senha'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) })
+        .then(r=>r.json()).then(data=>{
+          if (!data.success){
+            msg.textContent = data.error || 'Erro ao enviar código.';
+            msg.style.color = '#c00';
+            if (window.showToast) window.showToast(data.error || 'Erro ao enviar código.', {type:'error'});
+            btn.disabled = false;
+            btn.innerHTML = originalLabel;
+            return;
+          }
+          const textoBase = data.message || 'Se o e-mail existir na base, enviaremos um código de verificação.';
+          msg.textContent = textoBase;
+          msg.style.color = '#2e7d32';
+          if (window.showToast) window.showToast(textoBase, {type:'success'});
+          // Redireciona automaticamente para redefinição de senha com o e-mail informado
+          setTimeout(() => {
+            const url = new URL(window.location.origin + '/redefinir-senha.html');
+            url.searchParams.set('email', email);
+            window.location.href = url.toString();
+          }, 600);
+          // Se o servidor indicou cooldown, usa o retryAfter; senão, inicia 60s
+          const seconds = data.cooldown && data.retryAfter ? parseInt(data.retryAfter,10)||60 : 60;
+          startCooldown(seconds, email);
+        })
+        .catch(()=>{
+          msg.textContent = 'Erro de conexão.';
+          msg.style.color = '#c00';
+          if (window.showToast) window.showToast('Erro de conexão.', {type:'error'});
+          btn.disabled = false;
+          btn.innerHTML = originalLabel;
+        });
+    });
+    // Caso o usuário volte para a página e já tenha cooldown salvo
+    checkCooldownOnLoad();
+  });
+  </script>
+</body>
+</html>
