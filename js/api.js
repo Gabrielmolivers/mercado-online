@@ -424,34 +424,34 @@ router.get('/produtos', (req, res) => {
     return res.json({ success: true, produtos: paginados });
   }
   let respostaEnviada = false;
-  function finalizarResposta(erro, produtosProcessados) {
+  function finalizarResposta(erro, produtosProcessados, errObj) {
     if (!respostaEnviada) {
       respostaEnviada = true;
       if (erro) {
         return res.status(500).json({ success: false, error: erro });
       }
-  produtosCache = produtosProcessados || [];
-  cacheTimestamp = Date.now();
-  let filtrados = produtosCache;
-  if (search) {
-    filtrados = produtosCache.filter(prod => prod.nome && prod.nome.toLowerCase().includes(search));
-  }
-  if (codgrpFilter) {
-    filtrados = filtrados.filter(p => parseInt(p.codgrp) === codgrpFilter);
-  }
-  const paginados = filtrados.slice(offset, offset + limit);
-  res.json({ success: true, produtos: paginados });
+      produtosCache = produtosProcessados || [];
+      cacheTimestamp = Date.now();
+      let filtrados = produtosCache;
+      if (search) {
+        filtrados = produtosCache.filter(prod => prod.nome && prod.nome.toLowerCase().includes(search));
+      }
+      if (codgrpFilter) {
+        filtrados = filtrados.filter(p => parseInt(p.codgrp) === codgrpFilter);
+      }
+      const paginados = filtrados.slice(offset, offset + limit);
+      res.json({ success: true, produtos: paginados });
     }
   }
   connection.conectar((err, db) => {
     if (respostaEnviada) return;
     if (err) {
-      finalizarResposta('Erro ao conectar ao banco');
+      finalizarResposta('Erro ao conectar ao banco', null, err);
       return;
     }
   // Corrige nome de coluna: INIPROMO (e não INPROMO)
-  const sqlCompleto = 'SELECT PROCOD, DESCR, PRVENDA, IMAGEM, UND, CODGRP, NOMGRU, INIPROMO, FIMPROMO, VALORPROMO FROM PRODUTOS';
-    const sqlBasico   = 'SELECT PROCOD, DESCR, PRVENDA, IMAGEM, UND, CODGRP, NOMGRU FROM PRODUTOS';
+  const sqlCompleto = 'SELECT PROCOD, DESCR, PRVENDA, UND, CODGRP, NOMGRU, INIPROMO, FIMPROMO, VALORPROMO FROM PRODUTOS';
+    const sqlBasico   = 'SELECT PROCOD, DESCR, PRVENDA, UND, CODGRP, NOMGRU FROM PRODUTOS';
 
     function executarProcessamento(result, temCamposPromo){
         let produtosProcessados = [];
@@ -505,103 +505,46 @@ router.get('/produtos', (req, res) => {
             const precoPromo = (!isNaN(valorPromo) && valorPromo > 0) ? valorPromo : null;
           const descontoPerc = promoAtivo && precoBase > 0 ? Math.max(1, Math.min(99, Math.round((1 - (precoPromo / precoBase)) * 100))) : 0;
 
-          let imagemBase64 = '';
-          let imagemTipo = '';
-          if (typeof prod.IMAGEM === 'function') {
-            prod.IMAGEM((err, blobBuffer) => {
-              if (respostaEnviada) return;
-              if (err) {
-                imagemBase64 = '';
-                imagemTipo = '';
-              } else if (blobBuffer && blobBuffer.length > 0) {
-                if (blobBuffer[0] === 0xFF && blobBuffer[1] === 0xD8) imagemTipo = 'jpeg';
-                else if (blobBuffer[0] === 0x89 && blobBuffer[1] === 0x50) imagemTipo = 'png';
-                else imagemTipo = 'jpeg';
-                imagemBase64 = blobBuffer.toString('base64');
-                if (imagemBase64.length < 100) { imagemBase64 = ''; imagemTipo = ''; }
-              } else {
-                imagemBase64 = '';
-                imagemTipo = '';
-              }
-              if (!erroDetectado) {
-                produtosProcessados.push({
-                  procod: prod.PROCOD,
-                  nome: prod.DESCR,
-                    preco: precoBase,
-                  und: prod.UND,
-                  codgrp: prod.CODGRP,
-                  grupo: prod.NOMGRU,
-                  imagem: imagemBase64,
-                  imagemTipo: imagemTipo,
-                  promoAtivo: promoAtivo,
-                  precoPromo: precoPromo,
-                  inipromo: iniPromoDate ? iniPromoDate.toISOString().slice(0,10) : null,
-                  fimpromo: fimPromoDate ? fimPromoDate.toISOString().slice(0,10) : null,
-                  descontoPerc: descontoPerc
-                });
-                pendentes--;
-                if (pendentes === 0) {
-                  db.detach();
-                  finalizarResposta(null, produtosProcessados);
-                }
-              }
+          if (!erroDetectado) {
+            produtosProcessados.push({
+              procod: prod.PROCOD,
+              nome: prod.DESCR,
+              preco: precoBase,
+              und: prod.UND,
+              codgrp: prod.CODGRP,
+              grupo: prod.NOMGRU,
+              promoAtivo: promoAtivo,
+              precoPromo: precoPromo,
+              inipromo: iniPromoDate ? iniPromoDate.toISOString().slice(0,10) : null,
+              fimpromo: fimPromoDate ? fimPromoDate.toISOString().slice(0,10) : null,
+              descontoPerc: descontoPerc
             });
-          } else {
-            let buffer = null;
-            if (prod.IMAGEM) {
-              if (Buffer.isBuffer(prod.IMAGEM)) buffer = prod.IMAGEM;
-              else if (typeof prod.IMAGEM === 'object' && prod.IMAGEM.buffer) buffer = Buffer.from(prod.IMAGEM.buffer);
-              if (buffer && buffer.length > 0) {
-                if (buffer[0] === 0xFF && buffer[1] === 0xD8) imagemTipo = 'jpeg';
-                else if (buffer[0] === 0x89 && buffer[1] === 0x50) imagemTipo = 'png';
-                else imagemTipo = 'jpeg';
-                imagemBase64 = buffer.toString('base64');
-                if (imagemBase64.length < 100) { imagemBase64 = ''; imagemTipo = ''; }
-              }
-            }
-            if (!erroDetectado) {
-              produtosProcessados.push({
-                procod: prod.PROCOD,
-                nome: prod.DESCR,
-                  preco: precoBase,
-                und: prod.UND,
-                codgrp: prod.CODGRP,
-                grupo: prod.NOMGRU,
-                imagem: imagemBase64,
-                imagemTipo: imagemTipo,
-                promoAtivo: promoAtivo,
-                precoPromo: precoPromo,
-                inipromo: iniPromoDate ? iniPromoDate.toISOString().slice(0,10) : null,
-                fimpromo: fimPromoDate ? fimPromoDate.toISOString().slice(0,10) : null,
-                descontoPerc: descontoPerc
-              });
-              pendentes--;
-              if (pendentes === 0) {
-                db.detach();
-                finalizarResposta(null, produtosProcessados);
-              }
+            pendentes--;
+            if (pendentes === 0) {
+              db.detach();
+              finalizarResposta(null, produtosProcessados);
             }
           }
         });
     }
 
     db.query(sqlCompleto, [], (err, result) => {
-        if (respostaEnviada) { db.detach(); return; }
-        if (err) {
-          // Fallback para ambientes sem colunas de promoção
-          db.query(sqlBasico, [], (err2, result2) => {
-            if (respostaEnviada) { db.detach(); return; }
-            if (err2) {
-              db.detach();
-              finalizarResposta('Erro ao buscar produtos');
-              return;
-            }
-            executarProcessamento(result2, false);
-          });
-          return;
-        }
-        executarProcessamento(result, true);
-  });
+      if (respostaEnviada) { db.detach(); return; }
+      if (err) {
+        // Fallback para ambientes sem colunas de promoção
+        db.query(sqlBasico, [], (err2, result2) => {
+          if (respostaEnviada) { db.detach(); return; }
+          if (err2) {
+            db.detach();
+            finalizarResposta('Erro ao buscar produtos', null, err2);
+            return;
+          }
+          executarProcessamento(result2, false);
+        });
+        return;
+      }
+      executarProcessamento(result, true);
+    });
   });
 });
 

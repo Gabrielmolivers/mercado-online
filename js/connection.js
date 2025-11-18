@@ -5,7 +5,7 @@ const options = {
   //192.168.2.150
   host: '192.168.2.150',
   port: 3050,
-  database: 'C:\\CLIENTES_EXTERNO\\MERCADO_ONLINE\\APPVENDA.FDB',
+  database: 'C:\\CLIENTES_EXTERNO\\SCG_MOBILE\\TESTE\\SCG_MOBILE.FDB',
   user: 'SYSDBA',
   password: 'masterkey',
   lowercase_keys: false,
